@@ -1,0 +1,109 @@
+html{
+  height: 100%;
+  width: 100%;
+}
+
+
+#buttonContainer{
+  text-align: center;
+}
+
+#buttonContainer button{
+  width: 100px;
+  height: 60px;
+  margin: 1px 0;
+  font-size: 20px;
+}
+
+table tr td:not(#name){
+  text-align: center;
+}
+
+table tr:hover:not(:last-child):not(:first-child){
+  background-color: #FCF5E8;
+}
+
+.selected {
+  background-color: #FCF5E8;
+}
+
+.inGameButton{
+  background-color: #FD6757;
+}
+
+.selectedButton:hover{
+  background-color:#527F52;
+}
+
+.selectedButton{
+  background-color:#527F52
+}
+
+
+.out {
+  background-color: #FF9191;
+}
+
+.btn-disable button:not(#stopButton) {
+  pointer-events: none;
+  cursor: not-allowed;
+  background-color: #CFD6D9;
+}
+
+.btn-disable2 button:not(#stopButton) {
+  pointer-events: none;
+  cursor: not-allowed;
+  background-color: #CFD6D9;
+}
+
+.btn-disable3{
+  pointer-events: none;
+  cursor: not-allowed;
+  background-color: #CFD6D9;
+}
+
+.totalRow {
+  background-color: #ECF6FF;
+}
+
+.inGame {
+  background-color: rgb(213, 255, 205);
+}
+
+.glyphicon-remove{
+	color: red;
+}
+
+#gameTime input{
+  width: 40px;
+}
+
+#info_icon{
+  position: absolute;
+  margin-left: 50px;
+  margin-top: 250px;
+  font-size: 18px;
+}
+
+#info_content{
+  position: absolute;
+  margin-left:50px;
+  margin-top:270px;
+  background-color: rgba(200, 200, 200, 0.7);
+  border: 1px solid grey;
+  color: grey;
+
+}
+//login
+
+
+#main{
+  height: 300px;
+  margin: 45% auto;
+  text-align: center;
+}
+
+.row{
+  height: 100%;
+}
+
