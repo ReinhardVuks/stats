@@ -24,12 +24,25 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
   $scope.timersAway = {};
   $scope.timerGame = {};
 
-  $scope.gameLog = ["Game is about to begin"];
+  $scope.gameLog = [["Game is about to begin"]];
   $scope.removeLastPlay = function(){
     if($scope.gameLog.length > 1){
+      $scope.edit($scope.gameLog[$scope.gameLog.length - 1][1], $scope.gameLog[$scope.gameLog.length - 1][2], $scope.gameLog[$scope.gameLog.length - 1][3], $scope.gameLog[$scope.gameLog.length - 1][4]);
+      if($scope.gameLog[$scope.gameLog.length - 1][1].indexOf("Made") > -1){
+        for (var i = 0; i < $scope.team[$scope.playerTeam].length; i++) {
+        if ($scope.onCourt[$scope.playerTeam].indexOf(i) !== -1){
+            $scope.team[$scope.gameLog[$scope.gameLog.length - 1][4]][i]["PlusMinus"] -= +$scope.gameLog[$scope.gameLog.length - 1][0][0];
+      
+        }
+        if ($scope.onCourt[getOtherTeamName($scope.playerTeam)].indexOf(i) !== -1){
+            $scope.team[getOtherTeamName($scope.gameLog[$scope.gameLog.length - 1][4])][i]["PlusMinus"] += +$scope.gameLog[$scope.gameLog.length - 1][0][0];
+        }
+      }
+      }
       $scope.gameLog.splice(-1, 1);
     }
   }
+
 
   $scope.maxFouls = 5;
   $scope.nrOfPeriods = 4;
@@ -54,14 +67,44 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
 
   $scope.period = 1;
   $scope.team = {
-    "Home": [],
-    "Away": []
+    "Home": [{"Nr" : "", "Name" : "Team", "TimeRuns": false,
+      "Time": 0,
+      "OnePtMade": 0,
+      "OnePtMiss": 0,
+      "TwoPtMade": 0,
+      "TwoPtMiss": 0,
+      "ThreePtMade": 0,
+      "ThreePtMiss": 0,
+      "OffReb": 0,
+      "DefReb": 0,
+      "Assists": 0,
+      "Steals": 0,
+      "Blocks": 0,
+      "Turnovers" : 0,
+      "Fouls": 0,
+      "PlusMinus" : 0}],
+    "Away": [{"Nr" : "", "Name" : "Team", "TimeRuns": false,
+      "Time": 0,
+      "OnePtMade": 0,
+      "OnePtMiss": 0,
+      "TwoPtMade": 0,
+      "TwoPtMiss": 0,
+      "ThreePtMade": 0,
+      "ThreePtMiss": 0,
+      "OffReb": 0,
+      "DefReb": 0,
+      "Assists": 0,
+      "Steals": 0,
+      "Blocks": 0,
+      "Turnovers" : 0,
+      "Fouls": 0,
+      "PlusMinus" : 0}]
   };
 
 
   $scope.onCourt = {
-    "Home": [],
-    "Away": []
+    "Home": [0],
+    "Away": [0]
   };
 
   function nrToName(nr) {
@@ -75,6 +118,10 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
       default:
         break;
     }
+  }
+
+  function getShortName(team){
+    return team == "Home" ? $scope.homeTeamNameShort : $scope.awayTeamNameShort;
   }
 
   $scope.changePeriod = function(n){
@@ -119,13 +166,18 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
     $scope.GameOn = true;
 
     for (var i = 0; i < $scope.onCourt["Home"].length; i++) {
-      $scope.team["Home"][$scope.onCourt["Home"][i]]["TimeRuns"] = true;
-      countdownHome($scope.onCourt["Home"][i]);
+      if(i != 0){
+        $scope.team["Home"][$scope.onCourt["Home"][i]]["TimeRuns"] = true;
+        countdownHome($scope.onCourt["Home"][i]);
+    }
     }
     for (var i = 0; i < $scope.onCourt["Away"].length; i++) {
-      $scope.team["Away"][$scope.onCourt["Away"][i]]["TimeRuns"] = true;
-      countdownAway($scope.onCourt["Away"][i]);
+      if(i != 0){
+        $scope.team["Away"][$scope.onCourt["Away"][i]]["TimeRuns"] = true;
+        countdownAway($scope.onCourt["Away"][i]);
+      }
     }
+    
     countdownGame(0);
   };
 
@@ -152,7 +204,7 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
   };
 
   $scope.addPts = function(pts) {
-    if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
+    if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1 && $scope.playerId != 0) {
       $scope.shotBool = false;
       $scope.fgBool = true;
       $scope.val = pts;
@@ -167,21 +219,33 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
     }
   }
   $scope.fg = function(made, pts) {
+    var tmp = [];
     if (made) {
-      $scope.gameLog.push(pts+"Point Shot Made By: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"]+ " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
-      $scope.gameLog.push("$" + $scope.homeTeamName + " " + $scope.getTotal("Points", "Away") + " - " + $scope.getTotal("Points", "Home") + " " + $scope.awayTeamName);
-      $scope.team[$scope.playerTeam][$scope.playerId]["Points"] += pts;
       $scope.team[$scope.playerTeam][$scope.playerId][nrToName(pts) + "PtMade"]++;
+      tmp.push(getShortName($scope.playerTeam) + ": " + pts+"-Point Shot Made By: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"]+ " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.getPlayerTotalPoints($scope.playerId, $scope.playerTeam) + ")");
+      tmp.push(nrToName(pts) + "PtMade");
+      tmp.push(false);
+      tmp.push($scope.playerId);
+      tmp.push($scope.playerTeam);
+      tmp.push($scope.getTotalPoints("Home") + " - " + $scope.getTotalPoints("Away"));
+      $scope.gameLog.push(tmp);
       for (var i = 0; i < $scope.team[$scope.playerTeam].length; i++) {
         if ($scope.onCourt[$scope.playerTeam].indexOf(i) !== -1){
             $scope.team[$scope.playerTeam][i]["PlusMinus"] += pts;
         }
+      }
+      for (var i = 0; i < $scope.team[getOtherTeamName($scope.playerTeam)].length; i++) {          
         if ($scope.onCourt[getOtherTeamName($scope.playerTeam)].indexOf(i) !== -1){
             $scope.team[getOtherTeamName($scope.playerTeam)][i]["PlusMinus"] -= pts;
         }
-      }
+        };
     } else {
-      $scope.gameLog.push(pts+"Point Shot Missed By: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
+      tmp.push(getShortName($scope.playerTeam) + ": " + pts+"-Point Shot Missed By: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
+      tmp.push(nrToName(pts) + "PtMade");
+      tmp.push(null);
+      tmp.push($scope.playerId);
+      tmp.push($scope.playerTeam);
+      $scope.gameLog.push(tmp);
       $scope.team[$scope.playerTeam][$scope.playerId][nrToName(pts) + "PtMiss"]++;
     }
 
@@ -191,44 +255,82 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
 
   $scope.addRbd = function(isOff) {
     if ( $scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
+      var tmp = [];
       if (isOff) {
-        $scope.gameLog.push("Offensive Rebound to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
         $scope.team[$scope.playerTeam][$scope.playerId]["OffReb"]++;
+        tmp.push(getShortName($scope.playerTeam) + ": " + "Offensive Rebound to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (Off: " + $scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + ", Tot: " + (+$scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + +$scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]) +")");
+        tmp.push("OffReb");
       } else {
-        $scope.gameLog.push("Defensive Rebound to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
         $scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]++;
+        tmp.push(getShortName($scope.playerTeam) + ": " + "Defensive Rebound to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (Def: " + $scope.team[$scope.playerTeam][$scope.playerId]["DefReb"] + ", Tot: " + (+$scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + +$scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]) +")");
+        tmp.push("DefReb");
       }
+      tmp.push(false);
+      tmp.push($scope.playerId);
+      tmp.push($scope.playerTeam);
+      $scope.gameLog.push(tmp);
     }
   };
   $scope.addAst = function() {
-    if ( $scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
-      $scope.gameLog.push("Assist Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
+    if ( $scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1 && $scope.playerId != 0) {
       $scope.team[$scope.playerTeam][$scope.playerId]["Assists"]++;
+      var tmp = [];
+      tmp.push(getShortName($scope.playerTeam) + ": " + "Assist Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Assists"] + ")");
+      tmp.push("Assists");
+      tmp.push(false);
+      tmp.push($scope.playerId);
+      tmp.push($scope.playerTeam);
+      $scope.gameLog.push(tmp);
     }
   };
   $scope.addStl = function() {
-    if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
-      $scope.gameLog.push(" Steal Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
+    if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1 && $scope.playerId != 0) {
       $scope.team[$scope.playerTeam][$scope.playerId]["Steals"]++;
+      var tmp = [];
+      tmp.push(getShortName($scope.playerTeam) + ": " + "Steal Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Steals"] + ")");
+      tmp.push("Steals");
+      tmp.push(false);
+      tmp.push($scope.playerId);
+      tmp.push($scope.playerTeam);
+      $scope.gameLog.push(tmp);
     }
   };
   $scope.addBlk = function() {
-    if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
-      $scope.gameLog.push("Blocked Shot to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);  
+    if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1 && $scope.playerId != 0) {
       $scope.team[$scope.playerTeam][$scope.playerId]["Blocks"]++;
+      var tmp = [];
+      tmp.push(getShortName($scope.playerTeam) + ": " + "Blocked Shot to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Blocks"] + ")");  
+      tmp.push("Blocks");
+      tmp.push(false);
+      tmp.push($scope.playerId);
+      tmp.push($scope.playerTeam);
+      $scope.gameLog.push(tmp);
     }
   };
   $scope.addTo = function() {
     if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
-      $scope.gameLog.push("Turnover by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);  
       $scope.team[$scope.playerTeam][$scope.playerId]["Turnovers"]++;
+      var tmp = [];
+      tmp.push(getShortName($scope.playerTeam) + ": " + "Turnover by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Turnovers"] + ")");  
+      tmp.push("Turnovers");
+      tmp.push(false);
+      tmp.push($scope.playerId);
+      tmp.push($scope.playerTeam);
+      $scope.gameLog.push(tmp);
     }
   };
   $scope.addFls = function() {
     if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
-      if ($scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] < $scope.maxFouls)
-        $scope.gameLog.push("Foul Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
+      if ($scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] < $scope.maxFouls){
         $scope.team[$scope.playerTeam][$scope.playerId]["Fouls"]++;
+        var tmp = [];
+        tmp.push(getShortName($scope.playerTeam) + ": " + "Foul Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] + ")");
+        tmp.push("Fouls");
+        tmp.push(false);
+        tmp.push($scope.playerId);
+        tmp.push($scope.playerTeam);
+        $scope.gameLog.push(tmp);
+      }
     }
   };
 
@@ -238,7 +340,6 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
       "Name": name,
       "TimeRuns": false,
       "Time": 0,
-      "Points": 0,
       "OnePtMade": 0,
       "OnePtMiss": 0,
       "TwoPtMade": 0,
@@ -263,19 +364,27 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
   }
 
 
-  $scope.getTotal = function(x, teamName) {
+  $scope.getTotal = function(stat, teamName) {
     var total = 0;
     for (var i = 0; i < $scope.team[teamName].length; i++) {
-      var team = $scope.team[teamName][i][x];
+      var team = $scope.team[teamName][i][stat];
       total += +team;
     }
     return total;
   }
 
+  $scope.getPlayerTotalPoints = function(player, team){
+    return $scope.team[team][player]["OnePtMade"] + (+$scope.team[team][player]["TwoPtMade"] * 2) + (+$scope.team[team][player]["ThreePtMade"] * 3);
+  }
+
+  $scope.getTotalPoints = function(teamName){
+    return $scope.getTotal("OnePtMade", teamName) + (+$scope.getTotal("TwoPtMade", teamName) * 2) + (+$scope.getTotal("ThreePtMade", teamName) * 3);
+  }
+
   $scope.edit = function(stat, up, playerId, team){
     if(up){
       $scope.team[team][playerId][stat]++;
-    } else {
+    } else if (up != null) {
       if($scope.team[team][playerId][stat] > 0)
         $scope.team[team][playerId][stat]--; 
     }
@@ -382,7 +491,7 @@ hotkeys.add({
     }
   });
   hotkeys.add({
-    combo: '6',
+    combo: '8',
     description: 'Add Blocks',
     callback: function(){
       if($scope.playerId != null && $scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] < $scope.maxFouls){
@@ -416,8 +525,11 @@ hotkeys.add({
     description: 'Game Clock On/Off',
     callback: function(){
       if($scope.stats['TIME']){
-        if(!$scope.GameOn){
+        if(!$scope.GameOn && $scope.playerId != null ){
+          if($scope.onCourt.Home.length > 1 || $scope.onCourt.Away.length > 1 || $scope.playerId != 0){
+            
           $scope.start();
+           }
         } else {
           $scope.stop();
         }
@@ -438,7 +550,7 @@ hotkeys.add({
     combo: 'left',
     description: 'Switch Active Player',
     callback: function(){
-      if($scope.playerId > 0){
+      if($scope.playerId > 1){
       $scope.playerId--;
     }
     }
@@ -464,6 +576,7 @@ hotkeys.add({
 
   $scope.topdf = function(){
         columnsInital = Object.keys($scope.team["Home"][0]);
+        columnsInital.push("Points");
         var columns = ["#", "Player", "Min", "2p", "3p", "1p", "Def", "Off", "Tot", "Ast", "Stl", "Blk", "TO", "Fls", "+/-", "Pts"];
         
         var secToMin = function(totalSeconds) {
@@ -481,13 +594,12 @@ hotkeys.add({
         function getData(teamName){
 
           var data = [];
-          for (var i = 0; i < $scope.team[teamName].length; i++) {
+          for (var i = 1; i <= $scope.team[teamName].length-1; i++) {
             var array = $.map($scope.team[teamName][i], function(value, index) {
               return [value];
             });
-
             var statline = [,,,,,,,,,,,,,,,]
-            for (var j = 0; j < array.length; j++) {
+            for (var j = 0; j <= array.length; j++) {
               switch(columnsInital[j]){
                 case "Name":
                   statline[1] = array[j];
@@ -499,7 +611,7 @@ hotkeys.add({
                   statline[2] = secToMin(array[j]);
                   break;
                 case "Points":
-                  statline[15] = array[j];
+                  statline[15] = array[4] + (array[6]*2) + (array[8] * 3);
                   break;
                 case "OnePtMade":
                   statline[5] = array[j] + "-" + (array[j+1] + array[j]);
@@ -539,8 +651,17 @@ hotkeys.add({
             };
             data.push(statline);
           };
+          team = [,,,,,,,,,,,,,,,,];
+          team[1] = "Team";
+          team[6] = $scope.team[teamName][0]["DefReb"];
+          team[7] = $scope.team[teamName][0]["OffReb"];
+          team[8] = (+$scope.team[teamName][0]["OffReb"] + +$scope.team[teamName][0]["DefReb"]);
+          team[12] = $scope.team[teamName][0]["Turnovers"];
+          team[13] = $scope.team[teamName][0]["Fouls"];
+          data.push(team);
+
           total = [,,,,,,,,,,,,,,,,];
-          total[1] = "Total:"
+          total[1] = "Total";
           total[3] = $scope.getTotal("TwoPtMade", teamName) + "-" + (+$scope.getTotal("TwoPtMade", teamName) + +$scope.getTotal("TwoPtMiss", teamName));
           total[4] = $scope.getTotal("ThreePtMade", teamName) + "-" + (+$scope.getTotal("ThreePtMade", teamName) + +$scope.getTotal("ThreePtMiss", teamName));
           total[5] = $scope.getTotal("OnePtMade", teamName) + "-" + (+$scope.getTotal("OnePtMade", teamName) + +$scope.getTotal("OnePtMiss", teamName));
@@ -553,7 +674,7 @@ hotkeys.add({
           total[12] = $scope.getTotal("Turnovers", teamName);
           total[13] = $scope.getTotal("Fouls", teamName);
           
-          total[15] = $scope.getTotal("Points", teamName);
+          total[15] = $scope.getTotal("OnePtMade", teamName) + (+$scope.getTotal("TwoPtMade", teamName) * 2) + (+$scope.getTotal("ThreePtMade", teamName) * 3);
           data.push(total)
           return data;
         }
@@ -561,12 +682,12 @@ hotkeys.add({
         var doc = new jsPDF('p', 'pt');
         if($scope.team["Home"].length > 0){
           doc.text(35, 35, $scope.homeTeamName);
-          doc.text(50, 60, $scope.getTotal("Points", "Home").toString());
+          doc.text(50, 60, ($scope.getTotal("OnePtMade", "Home") + (+$scope.getTotal("TwoPtMade", "Home") * 2) + (+$scope.getTotal("ThreePtMade", "Home") * 3)).toString());
           doc.autoTable(columns, getData("Home"), {startY: 100, pageBreak: 'avoid'});
         }
         if($scope.team["Away"].length > 0){
           doc.text(350, 35, $scope.awayTeamName);
-          doc.text(365, 60, $scope.getTotal("Points", "Away").toString()); 
+          doc.text(365, 60, ($scope.getTotal("OnePtMade", "Away") + (+$scope.getTotal("TwoPtMade", "Away") * 2) + (+$scope.getTotal("ThreePtMade", "Away") * 3)).toString()); 
           doc.autoTable(columns, getData("Away"), {startY: 250+(15*getData("Home").length), pageBreak: 'avoid',});
         }
         doc.save("table.pdf");
@@ -576,15 +697,29 @@ hotkeys.add({
       var data = [];
       for (var i = 0; i < $scope.gameLog.length; i++) {
         var tmp = [];
-        $scope.gameLog[i].charAt(0) == "$" ? tmp.push($scope.gameLog[i].substring(1)) : tmp.push($scope.gameLog[i]);
+        if($scope.gameLog[i].length == 6){
+          tmp.push($scope.gameLog[i][5]);
+        } else {
+          tmp.push("");
+        }
+        tmp.push($scope.gameLog[i][0]);
         data.push(tmp);
       };
 
       var doc = new jsPDF('p', 'pt');
         doc.text(255, 60, "GAME LOG");
-        doc.autoTable(["Play-By-Play"], data, {startY: 100, styles: {halign: 'center'}});
+        if($scope.team["Home"].length > 0){
+          doc.text(120, 90, $scope.homeTeamName);
+        }
+        if($scope.team["Away"].length > 0){
+          doc.text(370, 90, $scope.awayTeamName);
+        }
+        doc.autoTable(["Score","Play-By-Play"], data, {startY: 100, styles: {halign: 'left'}});
         doc.save("game_log.pdf");
   }
+
+
+  $scope.count = 0;
 });
 myApp.filter('secondsToDateTime', [function() {
   return function(seconds) {

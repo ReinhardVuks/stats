@@ -1,0 +1,34 @@
+html, body{
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+#content{
+	padding-top: 120px;
+}
+
+#content a{
+	text-align: center;
+	width: 100%;
+	display: block;
+	font-size: 30px;
+	border: 1px solid rgb(200, 200, 255);
+	color: rgba(0, 0, 0, 0.7);
+	text-decoration: none;
+	cursor: pointer;
+	padding: 10px;
+	margin: 5px 0;
+	border-radius: 5px;
+}
+
+#content a:hover{
+	color: white;
+	background-color: grey;
+	-webkit-transition: background-color 500ms ease, color 1000ms ease, border 1000ms ease;
+	-moz-transition: background-color 500ms ease, color 1000ms ease, border 1000ms ease;
+	-ms-transition: background-color 500ms ease, color 1000ms ease, border 1000ms ease;
+	-o-transition: background-color 500ms ease, color 1000ms ease, border 1000ms ease;
+	transition: background-color 500ms ease, color 1000ms ease, border 1000ms ease;
+};

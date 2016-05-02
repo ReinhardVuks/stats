@@ -12,39 +12,42 @@ session_start();
 		<div class="row">
 			<div class="col-md-4"></div>
 
-			<div class="col-md-4" style="height: 100%">
+			<div class="col-md-4" style="padding-top: 120px; height: 100%">
 
 				<div class="" id="main">
 
 					<form ng-show="!registerOn" class="form-inline" role="form" action="login_action.php" method="post">
-						<div class="form-group">
+						<div class="form-group" style="width: 100%;">
 							<label for="user">Username</label>
-							<input type="text" class="form-control" id="user" name="username">
+							<input type="text" class="form-control pull-right" id="user" name="username">
 						</div>
-						<div class="form-group">
+						<div class="form-group" style="width: 100%;">
 							<label for="password">Password</label>
-							<input type="password" class="form-control" id="password" name="password">
-						</div><br><br>
-						<input type="submit" class="button btn-primary" id="submit" value="Enter"/>
-						<button class="button btn-success" id="register" ng-click="registerOn = true" ng-show="!registerOn">New User</button>
-					
+							<input type="password" class="form-control pull-right" id="password" name="password">
+						</div>
+						<div style="display: block; text-align: right;">
+						<input type="submit" class="btn btn-primary" id="submit" value="Enter"/>
+						<button type="button" class="btn btn-success" id="register" ng-click="registerOn = true" ng-show="!registerOn">New User</button>
+						</div>
 					</form>
 
 					<form ng-show="registerOn" class="form-inline" role="form" action="register_action.php" method="post">
-						<div class="form-group">
+						<div class="form-group" style="width: 100%;">
 							<label for="registerUser">E-Mail:</label>
-							<input type="text" class="form-control" id="registerUser" name="registerUser">
+							<input type="text" class="form-control pull-right" id="registerUser" name="registerUser">
 						</div>
-						<div class="form-group">
+						<div class="form-group" style="width: 100%;">
 							<label for="registerPassword">Password:</label>
-							<input type="password" class="form-control" id="registerPassword" name="registerPassword">
+							<input type="password" class="form-control pull-right" id="registerPassword" name="registerPassword">
 						</div>
-						<div class="form-group">
+						<div class="form-group" style="width: 100%;">
 							<label for="registerPasswordConfirm">Confirm:</label>
-							<input type="password" class="form-control" id="registerPasswordConfirm" name="registerPasswordConfirm">
+							<input type="password" class="form-control pull-right	" id="registerPasswordConfirm" name="registerPasswordConfirm">
 						</div>
-						<input type="submit" class="button btn-primary" id="registerSubmit" value="Register"/>
-						<a href="" ng-show="registerOn" ng-click="registerOn = false">Back</a>
+						<div style="display: block; text-align: right;">
+						<input type="submit" class="btn btn-primary" id="registerSubmit" value="Register"/>
+						<button type="button" class="btn btn-danger" ng-show="registerOn" ng-click="registerOn = false">Back</button>
+						</div>
 					</form>
 
 				</div>

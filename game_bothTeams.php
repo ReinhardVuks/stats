@@ -9,6 +9,7 @@ session_start();
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.2.61/jspdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.0.16/jspdf.plugin.autotable.js"></script>
   <script type="text/javascript" src="js/tableToPDF.js"></script>
+  <script type='text/javascript' src='js/tinycolor.js'></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="css/style.css">
   <link rel="stylesheet" type="text/css" href="css/hotkeys.min.css">
@@ -27,8 +28,23 @@ session_start();
     }
 }, false);
   </script>
+  <script type="text/javascript">
+    $(document).ready(function() { 
+      $('#homePlayerButtons').css("background-color", "<?php echo $_POST['homeTeamColor'] ?>");
+      $('#awayPlayerButtons').css("background-color", "<?php echo $_POST['awayTeamColor'] ?>");
+
+      if(tinycolor('<?php echo $_POST['homeTeamColor'] ?>').isLight()){
+        $('#homePlayerButtons').css("color", "black");
+      }
+      if(tinycolor('<?php echo $_POST['awayTeamColor'] ?>').isLight()){
+        $('#awayPlayerButtons').css("color", "black");
+      }
+    });
+    
+  </script>
 <div ng-app ng-controller="MyCtrl">
-  <?php
+  <?php  
+
   if(isset($_POST['home'])){
     $teamArray = $_POST['home'];
     for ($i=0; $i < count($teamArray); $i++) { 
@@ -60,24 +76,23 @@ session_start();
         }
     }
     ?>
-    <div ng-init="timeGame = <?php echo $_POST['periodLength'] * 60; ?>; initialGameTime = <?php echo $_POST['periodLength'] * 60; ?>"></div>
-    <div ng-init="maxOnCourtPlayers = <?php echo $_POST['playersOnCourt']; ?>"></div>
-    <div ng-init="nrOfPeriods = <?php echo $_POST['numberOfPeriods']; ?>"></div>
-    <div ng-init="maxFouls = <?php echo $_POST['maxFouls']; ?>"></div>
+    <div ng-init="timeGame = <?php echo $_POST['PERIOD_LENGTH'] * 60; ?>; initialGameTime = <?php echo $_POST['PERIOD_LENGTH'] * 60; ?>"></div>
+    <div ng-init="maxOnCourtPlayers = <?php echo $_POST['MAX_ON_COURT_PLAYERS']; ?>"></div>
+    <div ng-init="nrOfPeriods = <?php echo $_POST['NR_OF_PERIODS']; ?>"></div>
+    <div ng-init="maxFouls = <?php echo $_POST['MAX_FOULS']; ?>"></div>
 
     <span id="info_icon" ng-mouseover="showInfo = true" ng-mouseleave="showInfo = false" class="glyphicon glyphicon-info-sign" ></span>
-    <div id="info_content" ng-show="showInfo">Press "?" on keyboard to see shortcuts</div>
-    <div ng-init="homeTeamName = '<?php echo $_POST['homeTeamName']; ?>'; awayTeamName = '<?php echo $_POST['awayTeamName']; ?>'"></div>
+    <div id="info_content" ng-show="showInfo"><span>Press "?" on keyboard to see shortcuts</span><span>Press on an item to change it</span></div>
+    <div ng-init="homeTeamName = '<?php echo $_POST['homeTeamName']; ?>'; awayTeamName = '<?php echo $_POST['awayTeamName']; ?>'; homeTeamNameShort = '<?php echo $_POST['homeTeamNameShort'] ?>'; awayTeamNameShort = '<?php echo $_POST['awayTeamNameShort'] ?>'; homeTeamColor = '<?php echo $_POST['homeTeamColor'] ?>'; awayTeamColor= '<?php echo $_POST['awayTeamColor'] ?>'"></div>
     <div id="teamStats" class="row" style="height: auto; text-align: center;">
       <div id="homeTeam" class="col-xs-4 col-sm-4 col-md-4 col-lg-4" style="text-align:center;">
         <div ng-show="team.Home.length > 0" >
-        <p style="font-size: 35px;">{{homeTeamName}}</p>
-        <h1>{{getTotal("Points", "Home")}}</h1>
+        <p ng-click="playerId = 0; playerTeam = 'Home'" style="font-size: 35px;">{{homeTeamName}}</p>
+        <h1><td>{{getTotal("OnePtMade", "Home") + (+getTotal("TwoPtMade", "Home") * 2) + (+getTotal("ThreePtMade", "Home") * 3)}}</td></h1>
         {{getTotal("Fouls", "Home")}}
         </div>
       </div>
-
-      <div id="gameTime" class="col-xs-4 col-sm-4 col-md-4 col-lg-4" style="text-align:center;">
+      <div ng-show="stats.TIME" id="gameTime" class="col-xs-4 col-sm-4 col-md-4 col-lg-4" style="text-align:center;">
         <h1 ng-hide="editTime" ng-click="editTime = true; timeSplit();">{{timeGame | secondsToDateTime | date:'mm:ss'}}</h1>
         <button class="btn btn-alert" ng-click="resetTime()" ng-hide="editTime">Reset Time</button>
         <div ng-show="editTime" >
@@ -93,8 +108,8 @@ session_start();
       </div>
 
       <div ng-show="team.Away.length > 0" id="awayTeam" class="col-xs-4 col-sm-4 col-md-4 col-lg-4" style="text-align:center;">
-          <p style="font-size: 35px;">{{awayTeamName}}</p>
-          <h1>{{getTotal("Points", "Away")}}</h1>
+          <p ng-click="playerId = 0; playerTeam = 'Away'" style="font-size: 35px;">{{awayTeamName}}</p>
+          <h1><td>{{getTotal("OnePtMade", "Away") + (+getTotal("TwoPtMade", "Away") * 2) + (+getTotal("ThreePtMade", "Away") * 3)}}</td></h1>
           {{getTotal("Fouls", "Away")}}
       </div>
     </div>
@@ -102,9 +117,11 @@ session_start();
       <button class="btn btn-info" id="reportButton" ng-click="topdf()">Report</button>
       <button class="btn btn-info" id="gameLogReportButton" ng-click="gameLogPdf()">Game Log</button>
     </div>  
-    <div id="buttonContainer" ng-class="{'btn-disable' : onCourt[playerTeam].indexOf(playerId) <= -1, 'btn-disable2' : team[playerTeam][playerId]['Fouls'] >= maxFouls}">
-    <button ng-class="{'btn-disable3': (onCourt.Home.length == 0 && onCourt.Away.length == 0)}" class="btn" ng-click="start()" ng-hide="team[playerTeam][playerId]['TimeRuns']">Start</button>
-    <button id="stopButton" class="btn" ng-click="stop()" ng-show="team[playerTeam][playerId]['TimeRuns']">Stop</button>
+    <div style="min-height: 186px;" id="buttonContainer" ng-class="{'btn-disable' : onCourt[playerTeam].indexOf(playerId) <= -1, 'btn-disable2' : team[playerTeam][playerId]['Fouls'] >= maxFouls}">
+    <div ng-show="stats.TIME">
+      <button ng-class="{'btn-disable3': (onCourt.Home.length == 1 && onCourt.Away.length == 1 || playerId == 0)}" class="btn" ng-click="start()" ng-hide="GameOn">Start</button>
+      <button  id="stopButton" class="btn" ng-click="stop()" ng-show="GameOn">Stop</button>
+    </div>
     <div ng-show="stats.POINTS">
     <div class="btn-group" ng-model="shot" ng-show="shotBool && stats.MISSED_SHOTS">
       <button class="btn btn-success" ng-click="addPts(1)">1pt</button>
@@ -127,7 +144,7 @@ session_start();
       <button class="btn btn-success" ng-click="addRbd(false)">Def.</button>
       <button ng-show="!stats.OFF_REBOUNDS" ng-click="addRbd(false)">Rebound</button>
     </div>
-    <button ng-show="stats.ASSISTS3" class="btn btn-success" ng-click="addAst()">Assist</button>
+    <button ng-show="stats.ASSISTS" class="btn btn-success" ng-click="addAst()">Assist</button>
     <button ng-show="stats.STEALS" class="btn btn-success" ng-click="addStl()">Steal</button>
     <button ng-show="stats.BLOCKS" class="btn btn-success" ng-click="addBlk()">Block</button>
     <button ng-show="stats.TURNOVERS" class="btn btn-warning" ng-click="addTo()">Turnover</button>
@@ -135,7 +152,7 @@ session_start();
 
   </div>
   <div id="gameLog" style="text-align: center; border: 1px solid grey; width: 50%; margin: 10 auto; border-radius:10px;">
-    <h4 id="lastPlay"><span ng-show="gameLog[gameLog.length - 1].charAt(0) != '$'">{{gameLog[gameLog.length - 1]}}</span><span ng-show="gameLog[gameLog.length - 1].charAt(0) == '$'">{{gameLog[gameLog.length - 2]}}</span><span ng-show="gameLog.length > 1" class="glyphicon glyphicon-remove pull-right" ng-click="removeLastPlay()"></span></h4>
+    <h4 id="lastPlay"><span ng-show="gameLog[gameLog.length - 1].charAt(0) != '$'">{{gameLog[gameLog.length - 1][0]}}</span><span ng-show="gameLog[gameLog.length - 1].charAt(0) == '$'">{{gameLog[gameLog.length - 2]}}</span><span ng-show="gameLog.length > 1" class="glyphicon glyphicon-remove pull-right" ng-click="removeLastPlay()"></span></h4>
   </div>
   <div style="text-align: center">
   </div>
@@ -143,8 +160,15 @@ session_start();
 
     <div ng-show="team.Home.length > 0" class="col-lg-5" style="margin-left: 20px;">
 
-    <div class="homePlayerButtons">
-        <a ng-class="{'inGameButton' : onCourt.Home.indexOf($index) > -1, 'selectedButton': playerId == $index && playerTeam == 'Home' }" ng-click="selectedPlayer($index, 'Home')" ng-repeat="player in team.Home" class="btn btn-success" style="width: 100px; float: left;">{{player.Name.split(" ").pop()}}<br>{{player.Nr}}</a>
+    <div class="playerButtons">
+        <a id="homePlayerButtons" 
+        ng-class="{'inGameButton' : onCourt.Home.indexOf($index) > -1, 'selectedButton': playerId == $index && playerTeam == 'Home' }" 
+        ng-click="selectedPlayer($index, 'Home')" 
+        ng-repeat="player in team.Home" 
+        class="btn btn-success" 
+        style="width: 100px; float: left;'"
+        ng-hide="$index == 0">
+        {{player.Name.split(" ").pop()}}<br>{{player.Nr}}</a>
     </div>
       <table id="box-score" class="table table-bordered table-condensed table-responsive">
         <tr>
@@ -165,12 +189,15 @@ session_start();
           <td>Fls</td>
           <td>+/-</td>
         </tr>
-        <tr ng-repeat="player in team.Home" ng-click="selectedPlayer($index, 'Home')" ng-class="{'selected': (playerId == $index && playerTeam == 'Home'),
+        <tr ng-repeat="player in team.Home" 
+        ng-click="selectedPlayer($index, 'Home')"
+         ng-class="{'selected': (playerId == $index && playerTeam == 'Home'),
               'out':inGame, 
               'inGame' : onCourt.Home.indexOf($index) > -1, 
-              'btn-disable' : onCourt.Home.indexOf($index) == -1}">
+              'btn-disable' : onCourt.Home.indexOf($index) == -1}"
+          ng-hide="$index == 0">
           <td class="inGameCheckbox">
-            <input ng-disabled="onCourt.Home.length == maxOnCourtPlayers && onCourt.Home.indexOf($index) <= -1 || GameOn" ng-click="switch($index, 'Home')" type="checkbox">
+            <input ng-disabled="onCourt.Home.length - 1 == maxOnCourtPlayers && onCourt.Home.indexOf($index) <= -1 || GameOn" ng-click="switch($index, 'Home')" type="checkbox">
           </td>
           <td>
             {{player.Nr}}
@@ -182,7 +209,7 @@ session_start();
         {{player.Time | secondsToDateTime | date:'mm:ss'}}
       </td>
       <td>
-        {{player.Points}}
+        {{  +player.OnePtMade + (+player.TwoPtMade * 2) + (+player.ThreePtMade * 3)  }}
       </td>
       <td>
         {{ ( (+player.TwoPtMade) + (+player.ThreePtMade) ) + "/" + ( (+player.TwoPtMade) + (+player.ThreePtMade) + (+player.TwoPtMiss) + (+player.ThreePtMiss) ) }}
@@ -234,11 +261,27 @@ session_start();
       <td ng-show="playerId == $index && playerTeam == 'Home' && team[playerTeam][playerId]['TimeRuns'] == false">
           <span class="glyphicon glyphicon-remove" ng-click="removePlayer($index)">
       </td> 
-        </tr>
+    </tr>
+    <tr>
+      <td colspan="3">Team</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>{{team["Home"][0].OffReb}}</td>
+      <td>{{team["Home"][0].DefReb}}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>{{team["Home"][0].Turnovers}}</td>
+      <td>{{team["Home"][0].Fouls}}</td>
+      <td></td>
+    </tr>
         <tr class="totalRow">
           <td colspan="3">Total</td>
           <td>{{getTotal("Time", "Home") | secondsToDateTime | date:'mm:ss'}}</td>
-          <td>{{getTotal("Points", "Home")}}</td>
+          <td>{{getTotal("OnePtMade", "Home") + (+getTotal("TwoPtMade", "Home") * 2) + (+getTotal("ThreePtMade", "Home") * 3)}}</td>
 
           <td>{{+getTotal("TwoPtMade", "Home") + +getTotal("ThreePtMade", "Home") + "/" +(+getTotal("TwoPtMiss", "Home") + +getTotal("ThreePtMiss", "Home") + +getTotal("TwoPtMade", "Home") + +getTotal("ThreePtMade", "Home"))}}</td>
           <td>{{+getTotal("OnePtMade", "Home") + "/" + (+getTotal("OnePtMade", "Home") + +getTotal("OnePtMiss", "Home"))}}</td>
@@ -257,8 +300,8 @@ session_start();
     <div class="col-lg-1"></div>
     <div ng-show="team.Away.length > 0" class="col-lg-5" style=" margin-right: 20px;">
 
-    <div class="awayPlayerButtons">
-        <a ng-class="{'selectedButton': playerId == $index && playerTeam == 'Away', 'inGameButton' : onCourt.Away.indexOf($index) > -1 }" ng-click="selectedPlayer($index, 'Away')" ng-repeat="player in team.Away" class="btn btn-success" style="width: 100px; float: left;">{{player.Name.split(" ").pop()}}<br>{{player.Nr}}</a>
+    <div class="playerButtons">
+        <a id="awayPlayerButtons" ng-hide="$index == 0" ng-class="{'selectedButton': playerId == $index && playerTeam == 'Away', 'inGameButton' : onCourt.Away.indexOf($index) > -1 }" ng-click="selectedPlayer($index, 'Away')" ng-repeat="player in team.Away" class="btn btn-success" style="width: 100px; float: left;">{{player.Name.split(" ").pop()}}<br>{{player.Nr}}</a>
     </div>
       <table id="box-score" class="table table-bordered table-condensed table-responsive">
         <tr>
@@ -283,9 +326,9 @@ session_start();
         <tr ng-repeat="player in team.Away" ng-click="selectedPlayer($index, 'Away')" ng-class="{'selected': (playerId == $index && playerTeam == 'Away'),
               'out':inGame, 
               'inGame' : onCourt.Away.indexOf($index) > -1, 
-              'btn-disable' : onCourt.Away.indexOf($index) == -1}">
+              'btn-disable' : onCourt.Away.indexOf($index) == -1}" ng-hide="$index == 0">
           <td>
-            <input ng-disabled="onCourt.Away.length == maxOnCourtPlayers && onCourt.Away.indexOf($index) <= -1 || GameOn" ng-click="switch($index, 'Away')" type="checkbox">
+            <input ng-disabled="onCourt.Away.length -1 == maxOnCourtPlayers && onCourt.Away.indexOf($index) <= -1 || GameOn" ng-click="switch($index, 'Away')" type="checkbox">
           </td>
           <td>
             {{player.Nr}}
@@ -297,7 +340,7 @@ session_start();
         {{player.Time | secondsToDateTime | date:'mm:ss'}}
       </td>
       <td>
-        {{player.Points}}
+        {{  +player.OnePtMade + (+player.TwoPtMade * 2) + (+player.ThreePtMade * 3)  }}
       </td>
       <td>
         {{ ( (+player.TwoPtMade) + (+player.ThreePtMade) ) + "/" + ( (+player.TwoPtMade) + (+player.ThreePtMade) + (+player.TwoPtMiss) + (+player.ThreePtMiss) ) }}
@@ -351,12 +394,28 @@ session_start();
       </td>
       <td ng-show="playerId == $index && playerTeam == 'Away' && team[playerTeam][playerId]['TimeRuns'] == false">
           <span class="glyphicon glyphicon-remove" ng-click="removePlayer($index)">
-      </td>         </tr>
+      </td>         
+    </tr>
+    <tr>
+      <td colspan="3">Team</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>{{team["Away"][0].OffReb}}</td>
+      <td>{{team["Away"][0].DefReb}}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>{{team["Away"][0].Turnovers}}</td>
+      <td>{{team["Away"][0].Fouls}}</td>
+      <td></td>
+    </tr>
         <tr class="totalRow">
           <td colspan="3">Total</td>
           <td>{{getTotal("Time", "Away") | secondsToDateTime | date:'mm:ss'}}</td>
-          <td>{{getTotal("Points", "Away")}}</td>
-
+          <td>{{getTotal("OnePtMade", "Away") + (+getTotal("TwoPtMade", "Away") * 2) + (+getTotal("ThreePtMade", "Away") * 3)}}</td>
           <td>{{+getTotal("TwoPtMade", "Away") + +getTotal("ThreePtMade", "Away") + "/" +(+getTotal("TwoPtMiss", "Away") + +getTotal("ThreePtMiss", "Away") + +getTotal("TwoPtMade", "Away") + +getTotal("ThreePtMade", "Away"))}}</td>
           <td>{{+getTotal("OnePtMade", "Away") + "/" + (+getTotal("OnePtMade", "Away") + +getTotal("OnePtMiss", "Away"))}}</td>
           <td>{{getTotal("OffReb", "Away")}}</td>
@@ -385,9 +444,22 @@ session_start();
   </form>
   -->
     </div>
-    <button type="button" class="btn btn-success" style="width: 100%;">FINISH GAME</button>
+    <form action="saveGame.php" method="post">
+      <div ng-repeat="player in team.Home">
+        <div ng-repeat="(key,val) in player">
+          <input name="playerHome{{$parent.$index}}[]" value="{{val}}" hidden>
+        </div>
+      </div>
+      <div ng-repeat="player in team.Away">
+        <div ng-repeat="(key,val) in player">
+          <input name="playerAway{{$parent.$index}}[]" value="{{val}}" hidden>
+        </div>
+      </div>
+      <input name="homeTeamName" value="{{homeTeamName}}" hidden>
+      <input name="awayTeamName" value="{{awayTeamName}}" hidden>
+    <button class="btn btn-success" style="width: 100%;">FINISH GAME</button>
+    </form>
   </div>
-
 
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
   <script src="js/app2.js"></script>

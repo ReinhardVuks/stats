@@ -1,6 +1,11 @@
-html{
+html, body{
   height: 100%;
   width: 100%;
+  background-color: #FFFDFD;
+}
+
+a{
+  text-decoration: none;
 }
 
 
@@ -28,17 +33,20 @@ table tr:hover:not(:last-child):not(:first-child){
 }
 
 .inGameButton{
-  background-color: #FD6757;
+  background-color: #FD6757 !important;
 }
 
 .selectedButton:hover{
-  background-color:#527F52;
+  background-color:#527F52 !important;
 }
 
 .selectedButton{
-  background-color:#527F52
+  background-color:#527F52 !important;
 }
 
+.playerButtons{
+  min-height: 160px;
+}
 
 .out {
   background-color: #FF9191;
@@ -86,14 +94,24 @@ table tr:hover:not(:last-child):not(:first-child){
 }
 
 #info_content{
+  padding: 3px;
   position: absolute;
   margin-left:50px;
   margin-top:270px;
   background-color: rgba(200, 200, 200, 0.7);
   border: 1px solid grey;
+  border-radius: 5px;
   color: grey;
-
 }
+
+#info_content span{
+  display: block;
+}
+
+#box-score{
+  margin-top: 10px;
+}
+
 //login
 
 
