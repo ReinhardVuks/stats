@@ -122,7 +122,7 @@ session_start();
       <button class="btn btn-success" ng-click="fg(true, val)">Made</button>
     </div>
     </div>
-    <div ng-show="stats.REBOUNDS" class="btn-group" >
+    <div ng-show="stats.REBOUNDS"  class="btn-group" >
       <button ng-show="stats.OFF_REBOUNDS" class="btn btn-success" ng-click="addRbd(true)">Off.</button>
       <button class="btn btn-success" ng-click="addRbd(false)">Def.</button>
       <button ng-show="!stats.OFF_REBOUNDS" ng-click="addRbd(false)">Rebound</button>
