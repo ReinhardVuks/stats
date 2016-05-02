@@ -19,8 +19,8 @@ session_start();
 
 				<div id="selectSport" ng-show="!selectionDone">
 
+					<h1 class="h1">SELECT SPORT</h1>
 					<div class="btn-group buttonSport">
-						<h1 class="h1">SELECT SPORT</h1>
 						<button class="btn btn-info btn-lg" ng-click="selectSport(1)">BASKETBALL</button>
 						<button class="btn btn-info btn-lg" ng-click="selectSport(2)">FOOTBALL</button>
 						<button class="btn btn-info btn-lg" ng-click="selectSport(3)">VOLLEYBALL</button>
@@ -36,48 +36,27 @@ session_start();
             		<ul ng-repeat="(element, value) in item">
               			<ul>{{element}} <span ng-click="showGame = false" ng-show="showGame" class="glyphicon glyphicon-menu-up"></span><span ng-hide="showGame" ng-click="showGame = true" class="glyphicon glyphicon-menu-down"></span></ul>
 			              	<table class="table table-bordered table-striped table-condensed" ng-show="showGame">
-	            			    <tr ng-repeat="(piece, pieceVal) in value">
+	            			    <tr ng-if="element != 'Additional Settings'" ng-repeat="(piece, pieceVal) in value">
 	                  				<td>
 	                					<div class="input-group checkbox">
 	                  						<label>
 		                    					<input type="checkbox" name="stats['{{piece}}']" value="false" checked hidden>
-												<input type="checkbox" name="stats['{{piece}}']" value="true" checked> {{piece}}
+												<input type="checkbox" name="stats['{{piece}}']" value="true" checked> {{basketballStatsDict[piece]}}
 	                  						</label>
 	                					</div>
+	                				</td>
+	                			</tr>
+	                			<tr id="advSettings" ng-if="element == 'Additional Settings'" ng-repeat="(piece, pieceVal) in value">
+	                				<td>
+	                					<label for="{{piece}}">{{basketballStatsDict[piece]}}</label>
+										<input type="number" min="1" name="{{piece}}" id="{{piece}}" value="{{pieceVal}}">
 	                				</td>
 	                			</tr>
                 			</table>
               		</ul>
             	</ul>
-            	<div id="advSettings">
-            	<span><p>Additional Settings</p><span ng-click="showSettings = false" ng-show="showSettings" class="glyphicon glyphicon-menu-up"></span><span ng-hide="showSettings" ng-click="showSettings = true" class="glyphicon glyphicon-menu-down"></span></span>
-            	<table class="table table-bordered table-striped table-condensed" ng-show="showSettings">
-            		<tr>
-            			<td>
-            				<label for="periodLength">Period Length (minutes)</label>
-							<input type="number" min="1" name="periodLength" id="periodLength" value="10">
-            			</td>
-            		</tr>
-            		<tr>
-            			<td>
-            				<label for="numberOfPeriods">Number of periods</label>
-							<input type="number" min="1" name="numberOfPeriods" id="numberOfPeriods" value="4">
-            			</td>
-            		</tr>
-            		<tr>
-            			<td>
-            				<label for="playersOnCourt">Maximum number of players on court</label>
-							<input type="number" min="1" name="playersOnCourt" id="playersOnCourt" value="5">
-            			</td>
-            		</tr>
-            		<tr>
-            			<td>
-            				<label for="maxFouls">Maximum number of personal fouls</label>
-							<input type="number" id="maxFouls" name="maxFouls" min="1" value="5">
-            			</td>
-            		</tr>
-            	</table>
-            	</div>
+            	
+                			
             	<div>
 						<button type="button" class="btn btn-danger col-lg-6" ng-click="selectionDone = false;">Back</button>
 						<button type="button" class="btn btn-success col-lg-6" ng-click="showTeamList = true">Next</button>
@@ -100,8 +79,9 @@ session_start();
 				<div id="selectPlayers" ng-show="showTeamList">
 						<div class="form-group">
 							<div class="radio">
-								<label><input type="radio" name="teamSelection" value="Home" ng-model="selectedTeam">Home</label>
-								<label><input type="radio" name="teamSelection" value="Away" ng-model="selectedTeam">Away</label>
+								<label>Add to:</label>
+								<label><input type="radio" name="teamSelection" value="Home" ng-model="selectedTeam">{{homeTeamName}}</label>
+								<label><input type="radio" name="teamSelection" value="Away" ng-model="selectedTeam">{{awayTeamName}}</label>
 							</div>
 						</div>
 						<div class="form-group">
@@ -129,15 +109,22 @@ session_start();
 				<table class="table table-bordered table-responsive">
 					<tr>
 						<td colspan="2">
-							<span  ng-click="showEditHome = true" ng-hide="showEditHome">{{homeTeamName}}</span>
-							<input type="text" ng-show="showEditHome" ng-model="homeTeamName" value="{{homeTeamName}}" class="form-control"/>
+							<span style="padding-right: 5px; float: left;" ng-click="showEditHome = true" ng-hide="showEditHome">{{homeTeamName}}</span>
+							<input name="homeTeamName" style="width: 140px;" type="text" ng-show="showEditHome" ng-model="homeTeamName" value="{{homeTeamName}}" class="form-control"/>
+
+							<span style="float: left; padding-right: 5px;" ng-click="showEditHome = true" ng-hide="showEditHome">({{homeTeamNameShort}})</span>
+							<input name="homeTeamNameShort" maxlength="3" style="width: 60px;" type="text" ng-show="showEditHome" ng-model="homeTeamNameShort" value="{{homeTeamNameShort}}" class="form-control"/>
+							<div style="float: left; width: 40px; height: 20px; background-color: {{homeTeamColor}}" ng-click="showEditHome = true" ng-hide="showEditHome"></div>
+							<input name="homeTeamColor" style="width: 40px; padding: 0" type="color" ng-show="showEditHome" ng-model="homeTeamColor" value="{{homeTeamColor}}" class="form-control"/>
+							
+
 							<button type="button" ng-show="showEditHome" ng-click="showEditHome = false">Save</button>
 							<span style="font-size: 10px;" class="pull-right">Click on team name to change it!</span>
 						</td>
 					</tr>
 					<tr>
 						<td class="col-md-1">#</td>
-						<td class="col-md-11">NAME</td>
+						<td class="col-md-11">NAME<button type="button" style="font-size: 10px;" class="btn btn-danger pull-right" ng-click="cleanTeam('Home')">Delete Home Team</button></td>
 					</tr>
 					<tr ng-repeat="player in team['Home'] | orderBy:'Nr'" ng-mouseenter="showRemove=true" ng-mouseleave="showRemove=false">
 						<input type="hidden" name="home[]" value="{{player.Name}}, {{player.Nr}}">
@@ -153,15 +140,20 @@ session_start();
 				<table class="table table-bordered table-responsive">
 					<tr>
 						<td colspan="2">
-							<span  ng-click="showEditAway = true" ng-hide="showEditAway">{{awayTeamName}}</span>
-							<input type="text" ng-show="showEditAway" ng-model="awayTeamName" value="{{awayTeamName}}" class="form-control"/>
+							<span style="padding-right: 5px; float: left;" ng-click="showEditAway = true" ng-hide="showEditAway">{{awayTeamName}}</span>
+							<input name="awayTeamName" style="width: 140px;" type="text" ng-show="showEditAway" ng-model="awayTeamName" value="{{awayTeamName}}" class="form-control"/>
+
+							<span style="float: left; padding-right: 5px;" ng-click="showEditAway = true" ng-hide="showEditAway">({{awayTeamNameShort}})</span>
+							<input name="awayTeamNameShort" maxlength="3" style="width: 60px;" type="text" ng-show="showEditAway" ng-model="awayTeamNameShort" value="{{awayTeamNameShort}}" class="form-control"/>
+							<div style="float: left; width: 40px; height: 20px; background-color: {{awayTeamColor}}" ng-click="showEditAway = true" ng-hide="showEditAway"></div>
+							<input name="awayTeamColor" style="width: 40px; padding: 0" type="color" ng-show="showEditAway" ng-model="awayTeamColor" value="{{awayTeamColor}}" class="form-control"/>
 							<button type="button" ng-show="showEditAway" ng-click="showEditAway = false">Save</button>
 							<span style="font-size: 10px;" class="pull-right">Click on team name to change it!</span>
 						</td>
 					</tr>
 					<tr>
 						<td class="col-md-1">#</td>
-						<td class="col-md-11">NAME</td>
+						<td class="col-md-11">NAME<button type="button" style="font-size: 10px;" class="btn btn-danger pull-right" ng-click="cleanTeam('Away')">Delete Away Team</button></td>
 					</tr>
 					<tr ng-repeat="player in team['Away'] | orderBy:'Nr'" ng-mouseenter="showRemove=true" ng-mouseleave="showRemove=false">
 						<input type="hidden" name="away[]" value="{{player.Name}}, {{player.Nr}}">
@@ -178,8 +170,6 @@ session_start();
 					<button type="button" class="btn btn-danger col-lg-6" ng-click="showTeamList = false; selectionDone = true">Back</button>
 					<button class="btn btn-success col-lg-6">Submit Settings</button>
 				</div>
-				<input type="hidden" name="homeTeamName" value="{{homeTeamName}}">
-				<input type="hidden" name="awayTeamName" value="{{awayTeamName}}">
 				</div>
 				</form>
 
@@ -194,21 +184,17 @@ session_start();
 
 		$("#home_upload").change(function() {
 		    var names = [];
-		    for (var i = 0; i < $(this).get(0).files.length; ++i) {
-		        names.push($(this).get(0).files[i].name);
-		        if(i != $(this).get(0).files.length-1)
-		        names.push(", ");
+		    if($(this).get(0).files[0].name.length > 0){
+		    	names.push($(this).get(0).files[0].name);
+		    	$("#selected_files_home").html(names);
 		    }
-		    $("#selected_files_home").html(names);
 		});
 		$("#away_upload").change(function() {
 		    var names = [];
-		    for (var i = 0; i < $(this).get(0).files.length; ++i) {
-		        names.push($(this).get(0).files[i].name);
-		        if(i != $(this).get(0).files.length-1)
-		        names.push(", ");
+		    if($(this).get(0).files[0].name.length > 0){
+		    	names.push($(this).get(0).files[0].name);
+		    	$("#selected_files_away").html(names);
 		    }
-		    $("#selected_files_away").html(names);
 		});
 	</script>
 </body>

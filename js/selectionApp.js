@@ -3,7 +3,11 @@ var myApp = angular.module('selectionApp', []);
 myApp.controller('MyCtrl', function($scope) {
 
 	$scope.homeTeamName = "Home";
+	$scope.homeTeamNameShort = "HME";
+	$scope.homeTeamColor = "#FFFFFF";
 	$scope.awayTeamName = "Away";
+	$scope.awayTeamNameShort = "AWY";
+	$scope.awayTeamColor  = "#000000";
 
 	$scope.selectionDone = false;
 	$scope.selectSport = function(nr){
@@ -36,8 +40,33 @@ myApp.controller('MyCtrl', function($scope) {
 			"BLOCKS" : false,
 			"FOULS" : false,
 			"TURNOVERS" : false
+		}},
+		{"Additional Settings" : {
+			"PERIOD_LENGTH" : 10,
+			"NR_OF_PERIODS" : 4,
+			"MAX_ON_COURT_PLAYERS" : 5,
+			"MAX_FOULS" : 5
 		}}
-	]
+	];
+
+	$scope.basketballStatsDict =  {
+		"TIME" : 'Use game clock',
+		"QUARTERS" : 'Keep count of quarters',
+		'POINTS' : 'Mark points',
+		"MISSED_SHOTS" : 'Mark missed shots',
+		"REBOUNDS" : 'Mark rebounds',
+		"OFF_REBOUNDS" : 'Mark offensive rebounds',
+		"ASSISTS" : 'Mark assists',
+		"STEALS" : 'Mark steals',
+		"BLOCKS" : 'Mark blocks',
+		"FOULS" : 'Mark fouls',
+		"TURNOVERS" : 'Mark turnovers',
+		"PERIOD_LENGTH" : 'Set period length in minutes',
+		"NR_OF_PERIODS" : 'Set number of periods',
+		"MAX_ON_COURT_PLAYERS" : 'Set maximum number of on court players',
+		"MAX_FOULS" : 'Set maximum number of fouls allowed to commit'
+	};
+
 
 
 	$scope.team = {"Home":[],
@@ -57,7 +86,12 @@ myApp.controller('MyCtrl', function($scope) {
     $scope.Nr = null;
   }
   */
-  $scope.newPlayer = function(teamName, name, nr){
+
+    $scope.newPlayer = function(teamName, name, nr){
+   	if($scope.numberExist(teamName, nr)){
+   		alert("Player with number " + nr + " already exist.\nChoose another!")
+   		return;
+   	}
   	$scope.team[teamName].push({
   		Nr: nr == null ? 0 : +nr,
   		Name: capitalizeEachWord(name)
@@ -66,12 +100,32 @@ myApp.controller('MyCtrl', function($scope) {
   	$scope.Nr = null;
   }
 
+  $scope.numberExist = function(teamName, nr){
+	for (var i = 0; i < $scope.team[teamName].length; i++) {
+		if($scope.team[teamName][i].Nr == nr){
+			return true
+		}
+	};
+	return false;
+}
+
   $scope.removePlayer = function(nr, teamName){
     for (var i = 0; i < $scope.team[teamName].length; i++) {
     	if (nr == $scope.team[teamName][i].Nr){
     		$scope.team[teamName].splice(i, 1);
     	}
     };
+  }
+
+  $scope.cleanTeam = function(teamName){
+  	if(teamName == "Home"){
+  		$scope.homeTeamName = "Home";
+  	} else {
+  		$scope.awayTeamName = "Away";
+  	}
+  	while($scope.team[teamName].length > 0){
+		$scope.team[teamName].splice(0, 1);
+	}
   }
 
 
@@ -88,23 +142,26 @@ function capitalizeEachWord(str) {
     });
 }
 
-$scope.addTeamFromFile = function($fileContent, team){
+$scope.addTeamFromFile = function($fileContent, teamName){
+	$scope.cleanTeam(teamName);
 	$scope.content = $fileContent.split("\n");
 	for (var i = 0; i < $scope.content.length; i++) {
 		var val = $scope.content[i].trim();
 		var player = val.split(",");
 		if(i == 0){
-			if(team == "Home"){
+			if(teamName == "Home"){
 				$scope.homeTeamName = capitalizeEachWord(val);
 			} else {
 				$scope.awayTeamName = capitalizeEachWord(val);
 			}
 		}
 		if(player.length > 1){
-			$scope.newPlayer(team, player[0].trim(), player[1].trim());
+			$scope.newPlayer(teamName, player[0].trim(), player[1].trim());
 		}
 	};
 }
+
+
 
 $scope.showContent = function($fileContent){
         $scope.content = $fileContent.split("\n");
