@@ -1,6 +1,5 @@
 var myApp = angular.module('myApp', ['cfp.hotkeys', 'pubnub.angular.service','pascalprecht.translate']);
 myApp.config(['$translateProvider', function($translateProvider){
-  // Adding a translation table for the English language
   $translateProvider.translations('en', {
    'SHOT_MADE' : '-point Shot Made By: ',
    'SHOT_MISSED' : '-point Shot Made By: ',
@@ -11,8 +10,7 @@ myApp.config(['$translateProvider', function($translateProvider){
    'BLOCK' : 'Blocked Shot to: ',
    'TURNOVER' : 'Turnover by: ',
    'FOUL' : 'Foul Made by: ',
-  });
-  // Adding a translation table for the Russian language
+ });
   $translateProvider.translations('ee', {
    'SHOT_MADE' : '-punkti vise sees: ',
    'SHOT_MISSED' : '-punkti vise möödas: ',
@@ -23,8 +21,7 @@ myApp.config(['$translateProvider', function($translateProvider){
    'BLOCK' : 'Blokeeritud vise: ',
    'TURNOVER' : 'Pallikaotus: ',
    'FOUL' : 'Viga: ',
-  });
-  // Tell the module what language to use by default
+ });
   $translateProvider.preferredLanguage('en');
 }])
 
@@ -40,7 +37,7 @@ myApp.controller('MyCtrl', function($rootScope, $scope, $timeout, $translate, ho
   $scope.userId = "User " + Math.round(Math.random()*1000);
   $scope.channel = "Channel" + $_GET('nr');
 
-   if (!$rootScope.initialized) {
+  if (!$rootScope.initialized) {
     PubNub.init({
       subscribe_key: 'sub-c-874efbca-0242-11e6-8b0b-0619f8945a4f',
       publish_key: 'pub-c-5b2ab7df-8440-4d8f-9423-07992a42ee77',
@@ -51,43 +48,43 @@ myApp.controller('MyCtrl', function($rootScope, $scope, $timeout, $translate, ho
 
   $scope.publish = function() {
     $scope.message =[$scope.team, $scope.gameLog, $scope.homeTeamName, $scope.awayTeamName];
-  PubNub.ngPublish({
-    channel: $scope.channel,
-    message: $scope.message
-  });
-};
+    PubNub.ngPublish({
+      channel: $scope.channel,
+      message: $scope.message
+    });
+  };
 
-function $_GET(param) {
-  var vars = {};
-  window.location.href.replace( location.hash, '' ).replace( 
-    /[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
-    function( m, key, value ) { // callback
+  function $_GET(param) {
+    var vars = {};
+    window.location.href.replace( location.hash, '' ).replace( 
+    /[?&]+([^=&]+)=?([^&]*)?/gi, 
+    function( m, key, value ) { 
       vars[key] = value !== undefined ? value : '';
     }
-  );
+    );
 
-  if ( param ) {
-    return vars[param] ? vars[param] : null;  
+    if ( param ) {
+      return vars[param] ? vars[param] : null;  
+    }
+    return vars;
   }
-  return vars;
-}
 
 
   //----------------LIVE-------------
 
   $scope.stats = [{
-      "TIME" : false,
-      "QUARTERS" : false,
-      "POINTS" : false,
-      "MISSED_SHOTS": false,
-      "REBOUNDS" : false,
-      "OFF_REBOUNDS" : false,
-      "ASSISTS" : false,
-      "STEALS" : false,
-      "BLOCKS" : false,
-      "FOULS" : false,
-      "TURNOVERS" : false
-    }
+    "TIME" : false,
+    "QUARTERS" : false,
+    "POINTS" : false,
+    "MISSED_SHOTS": false,
+    "REBOUNDS" : false,
+    "OFF_REBOUNDS" : false,
+    "ASSISTS" : false,
+    "STEALS" : false,
+    "BLOCKS" : false,
+    "FOULS" : false,
+    "TURNOVERS" : false
+  }
   ]
 
   $scope.GameOn = false;
@@ -108,13 +105,13 @@ function $_GET(param) {
         var value = $scope.gameLog[$scope.gameLog.length - 1][0].split(":")[1][1];
         for (var i = 0; i < $scope.team[$scope.playerTeam].length; i++) {
           if ($scope.onCourt[$scope.playerTeam].indexOf(i) !== -1){
-              $scope.team[$scope.gameLog[$scope.gameLog.length - 1][4]][i]["PlusMinus"] -= +value;
-        
+            $scope.team[$scope.gameLog[$scope.gameLog.length - 1][4]][i]["PlusMinus"] -= +value;
+
           }
         }
         for (var i = 0; i < $scope.team[getOtherTeamName($scope.playerTeam)].length; i++) {
           if ($scope.onCourt[getOtherTeamName($scope.playerTeam)].indexOf(i) !== -1){
-              $scope.team[getOtherTeamName($scope.gameLog[$scope.gameLog.length - 1][4])][i]["PlusMinus"] += +value;
+            $scope.team[getOtherTeamName($scope.gameLog[$scope.gameLog.length - 1][4])][i]["PlusMinus"] += +value;
           }
         };
       }
@@ -147,11 +144,11 @@ function $_GET(param) {
         $scope.team["Away"][$scope.onCourt["Away"][i]]["Time"] = $scope.team["Away"][$scope.onCourt["Away"][i]]["Time"] + timeDiff;
       }
     }
-}
+  }
 
   $scope.timeSplit = function(){
-      $scope.timeGameMin = Math.floor(+$scope.timeGame / 60);
-      $scope.timeGameSec = +$scope.timeGame % 60;
+    $scope.timeGameMin = Math.floor(+$scope.timeGame / 60);
+    $scope.timeGameSec = +$scope.timeGame % 60;
 
   }
 
@@ -162,37 +159,37 @@ function $_GET(param) {
   $scope.period = 1;
   $scope.team = {
     "Home": [{"Nr" : "", "Name" : "Team", "TimeRuns": false,
-      "Time": 0,
-      "OnePtMade": 0,
-      "OnePtMiss": 0,
-      "TwoPtMade": 0,
-      "TwoPtMiss": 0,
-      "ThreePtMade": 0,
-      "ThreePtMiss": 0,
-      "OffReb": 0,
-      "DefReb": 0,
-      "Assists": 0,
-      "Steals": 0,
-      "Blocks": 0,
-      "Turnovers" : 0,
-      "Fouls": 0,
-      "PlusMinus" : 0}],
+    "Time": 0,
+    "OnePtMade": 0,
+    "OnePtMiss": 0,
+    "TwoPtMade": 0,
+    "TwoPtMiss": 0,
+    "ThreePtMade": 0,
+    "ThreePtMiss": 0,
+    "OffReb": 0,
+    "DefReb": 0,
+    "Assists": 0,
+    "Steals": 0,
+    "Blocks": 0,
+    "Turnovers" : 0,
+    "Fouls": 0,
+    "PlusMinus" : 0}],
     "Away": [{"Nr" : "", "Name" : "Team", "TimeRuns": false,
-      "Time": 0,
-      "OnePtMade": 0,
-      "OnePtMiss": 0,
-      "TwoPtMade": 0,
-      "TwoPtMiss": 0,
-      "ThreePtMade": 0,
-      "ThreePtMiss": 0,
-      "OffReb": 0,
-      "DefReb": 0,
-      "Assists": 0,
-      "Steals": 0,
-      "Blocks": 0,
-      "Turnovers" : 0,
-      "Fouls": 0,
-      "PlusMinus" : 0}]
+    "Time": 0,
+    "OnePtMade": 0,
+    "OnePtMiss": 0,
+    "TwoPtMade": 0,
+    "TwoPtMiss": 0,
+    "ThreePtMade": 0,
+    "ThreePtMiss": 0,
+    "OffReb": 0,
+    "DefReb": 0,
+    "Assists": 0,
+    "Steals": 0,
+    "Blocks": 0,
+    "Turnovers" : 0,
+    "Fouls": 0,
+    "PlusMinus" : 0}]
   };
 
 
@@ -204,13 +201,13 @@ function $_GET(param) {
   function nrToName(nr) {
     switch(nr) {
       case 1:
-        return "One";
+      return "One";
       case 2:
-        return "Two";
+      return "Two";
       case 3:
-        return "Three";
+      return "Three";
       default:
-        break;
+      break;
     }
   }
 
@@ -222,13 +219,13 @@ function $_GET(param) {
     if(n == 1 && $scope.period < $scope.nrOfPeriods){
       $scope.period++;
       if($scope.periodFouls["Home"].length < $scope.period)
-          $scope.periodFouls["Home"].push(0);
-          $scope.periodFouls["Away"].push(0);
+        $scope.periodFouls["Home"].push(0);
+      $scope.periodFouls["Away"].push(0);
     } 
     if (n == 0 && $scope.period > 1) {
       $scope.period--;
     }
-    }
+  }
 
   $scope.switch = function(nr, team) {
     if ($scope.onCourt[team].indexOf(nr) == -1 && $scope.onCourt[team].length <= 5) {
@@ -253,9 +250,9 @@ function $_GET(param) {
     if($scope.timeGame == 0)
       $scope.stop();
     if($scope.GameOn){
-    $scope.timeGame--;
-    $scope.timerGame[id] = $timeout(countdownGame.bind(null, id), 1000);
-  }
+      $scope.timeGame--;
+      $scope.timerGame[id] = $timeout(countdownGame.bind(null, id), 1000);
+    }
     
   }
 
@@ -266,7 +263,7 @@ function $_GET(param) {
       if(i != 0){
         $scope.team["Home"][$scope.onCourt["Home"][i]]["TimeRuns"] = true;
         countdownHome($scope.onCourt["Home"][i]);
-    }
+      }
     }
     for (var i = 0; i < $scope.onCourt["Away"].length; i++) {
       if(i != 0){
@@ -328,14 +325,14 @@ function $_GET(param) {
       $scope.gameLog.push(tmp);
       for (var i = 0; i < $scope.team[$scope.playerTeam].length; i++) {
         if ($scope.onCourt[$scope.playerTeam].indexOf(i) !== -1){
-            $scope.team[$scope.playerTeam][i]["PlusMinus"] += pts;
+          $scope.team[$scope.playerTeam][i]["PlusMinus"] += pts;
         }
       }
       for (var i = 0; i < $scope.team[getOtherTeamName($scope.playerTeam)].length; i++) {          
         if ($scope.onCourt[getOtherTeamName($scope.playerTeam)].indexOf(i) !== -1){
-            $scope.team[getOtherTeamName($scope.playerTeam)][i]["PlusMinus"] -= pts;
+          $scope.team[getOtherTeamName($scope.playerTeam)][i]["PlusMinus"] -= pts;
         }
-        };
+      };
     } else {
       tmp.push(getShortName($scope.playerTeam) + ": " + pts+ $translate.instant('SHOT_MISSED') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
       tmp.push(nrToName(pts) + "PtMade");
@@ -495,7 +492,7 @@ function $_GET(param) {
     }
   }
 
-hotkeys.add({
+  hotkeys.add({
     combo: '1',
     description: 'Free throw',
     callback: function(){
@@ -506,7 +503,7 @@ hotkeys.add({
           $scope.addPts(1);
         }
       }
-        
+
     }
   });
   hotkeys.add({
@@ -527,13 +524,13 @@ hotkeys.add({
     description: 'Three Point Shot',
     callback: function(){
       if($scope.playerId != null && $scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] < $scope.maxFouls){
-          if(!$scope.stats["MISSED_SHOTS"]){
-            $scope.fg(true, 3);
-          } else {
-            $scope.addPts(3);
-          }
+        if(!$scope.stats["MISSED_SHOTS"]){
+          $scope.fg(true, 3);
+        } else {
+          $scope.addPts(3);
         }
       }
+    }
   });
   hotkeys.add({
     combo: 'q',
@@ -632,13 +629,13 @@ hotkeys.add({
       if($scope.stats['TIME']){
         if(!$scope.GameOn && $scope.playerId != null ){
           if($scope.onCourt.Home.length > 1 || $scope.onCourt.Away.length > 1 || $scope.playerId != 0){
-            
-          $scope.start();
-           }
+
+            $scope.start();
+          }
         } else {
           $scope.stop();
         }
-        }
+      }
     }
   });
   hotkeys.add({
@@ -647,17 +644,17 @@ hotkeys.add({
     callback: function(){
       if($scope.playerId < $scope.team[$scope.playerTeam].length-1){
        $scope.playerId++;
-      }
-    }
-  });
+     }
+   }
+ });
 
   hotkeys.add({
     combo: 'left',
     description: 'Switch Active Player',
     callback: function(){
       if($scope.playerId > 1){
-      $scope.playerId--;
-    }
+        $scope.playerId--;
+      }
     }
   });
 
@@ -666,7 +663,7 @@ hotkeys.add({
     description: 'Switch Active Team',
     callback: function(){
       if($scope.team["Home"].length > 0)
-      $scope.playerTeam = "Home";
+        $scope.playerTeam = "Home";
     }
   });
 
@@ -680,19 +677,18 @@ hotkeys.add({
   });
 
   $scope.topdf = function(){
-        columnsInital = Object.keys($scope.team["Home"][0]);
-        columnsInital.push("Points");
-        var columns = ["#", "Player", "Min", "2p", "3p", "1p", "Def", "Off", "Tot", "Ast", "Stl", "Blk", "TO", "Fls", "+/-", "Pts"];
-        
-        var secToMin = function(totalSeconds) {
-          var minutes = Math.floor(totalSeconds  / 60);
-          var seconds = totalSeconds - (minutes * 60);
+    columnsInital = Object.keys($scope.team["Home"][0]);
+    columnsInital.push("Points");
+    var columns = ["#", "Player", "Min", "2p", "3p", "1p", "Def", "Off", "Tot", "Ast", "Stl", "Blk", "TO", "Fls", "+/-", "Pts"];
 
-          // round seconds
+    var secToMin = function(totalSeconds) {
+      var minutes = Math.floor(totalSeconds  / 60);
+      var seconds = totalSeconds - (minutes * 60);
+
           seconds = Math.round(seconds * 100) / 100
 
           var result = (minutes < 10 ? "0" + minutes : minutes);
-              result += ":" + (seconds  < 10 ? "0" + seconds : seconds);
+          result += ":" + (seconds  < 10 ? "0" + seconds : seconds);
           return result;
         }
 
@@ -707,51 +703,51 @@ hotkeys.add({
             for (var j = 0; j <= array.length; j++) {
               switch(columnsInital[j]){
                 case "Name":
-                  statline[1] = array[j];
-                  break;
+                statline[1] = array[j];
+                break;
                 case "Nr":
-                  statline[0] = array[j];
-                  break;
+                statline[0] = array[j];
+                break;
                 case "Time":
-                  statline[2] = secToMin(array[j]);
-                  break;
+                statline[2] = secToMin(array[j]);
+                break;
                 case "Points":
-                  statline[15] = array[4] + (array[6]*2) + (array[8] * 3);
-                  break;
+                statline[15] = array[4] + (array[6]*2) + (array[8] * 3);
+                break;
                 case "OnePtMade":
-                  statline[5] = array[j] + "-" + (array[j+1] + array[j]);
-                  break;
+                statline[5] = array[j] + "-" + (array[j+1] + array[j]);
+                break;
                 case "TwoPtMade":
-                  statline[3] = array[j] + "-" + (array[j+1] + array[j]);
-                  break;
+                statline[3] = array[j] + "-" + (array[j+1] + array[j]);
+                break;
                 case "ThreePtMade":
-                  statline[4] = array[j] + "-" + (array[j+1] + array[j]);
-                  break;
+                statline[4] = array[j] + "-" + (array[j+1] + array[j]);
+                break;
                 case "OffReb":
-                  statline[7] = array[j];
-                  break;
+                statline[7] = array[j];
+                break;
                 case "DefReb":
-                  statline[6] = array[j];
-                  statline[8] = array[j] + array[j-1];
-                  break;
+                statline[6] = array[j];
+                statline[8] = array[j] + array[j-1];
+                break;
                 case "Assists":
-                  statline[9] = array[j];
-                  break;
+                statline[9] = array[j];
+                break;
                 case "Steals":
-                  statline[10] = array[j];
-                  break;
+                statline[10] = array[j];
+                break;
                 case "Blocks":
-                  statline[11] = array[j];
-                  break;
+                statline[11] = array[j];
+                break;
                 case "Turnovers":
-                  statline[12] = array[j];
-                  break;
+                statline[12] = array[j];
+                break;
                 case "Fouls":
-                  statline[13] = array[j];
-                  break;
+                statline[13] = array[j];
+                break;
                 case "PlusMinus":
-                  statline[14] = array[j];
-                  break;
+                statline[14] = array[j];
+                break;
               }
             };
             data.push(statline);
@@ -796,22 +792,22 @@ hotkeys.add({
           doc.autoTable(columns, getData("Away"), {startY: 250+(15*getData("Home").length), pageBreak: 'avoid',});
         }
         doc.save("table.pdf");
-  }
+      }
 
-  $scope.gameLogPdf = function(){
-      var data = [];
-      for (var i = 0; i < $scope.gameLog.length; i++) {
-        var tmp = [];
-        if($scope.gameLog[i].length == 6){
-          tmp.push($scope.gameLog[i][5]);
-        } else {
-          tmp.push("");
-        }
-        tmp.push($scope.gameLog[i][0]);
-        data.push(tmp);
-      };
+      $scope.gameLogPdf = function(){
+        var data = [];
+        for (var i = 0; i < $scope.gameLog.length; i++) {
+          var tmp = [];
+          if($scope.gameLog[i].length == 6){
+            tmp.push($scope.gameLog[i][5]);
+          } else {
+            tmp.push("");
+          }
+          tmp.push($scope.gameLog[i][0]);
+          data.push(tmp);
+        };
 
-      var doc = new jsPDF('p', 'pt');
+        var doc = new jsPDF('p', 'pt');
         doc.text(255, 60, "GAME LOG");
         if($scope.team["Home"].length > 0){
           doc.text(120, 90, $scope.homeTeamName);
@@ -821,11 +817,11 @@ hotkeys.add({
         }
         doc.autoTable(["Score","Play-By-Play"], data, {startY: 100, styles: {halign: 'left'}});
         doc.save("game_log.pdf");
-  }
+      }
 
 
-  $scope.count = 0;
-});
+      $scope.count = 0;
+    });
 myApp.filter('secondsToDateTime', [function() {
   return function(seconds) {
     return new Date(1970, 0, 1).setSeconds(seconds);

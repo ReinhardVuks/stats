@@ -10,7 +10,7 @@ function dbconnect(){
 	// Create connection
 	$conn = new mysqli($servername, $username, $password, $dbname);
 	if($conn->connect_error){
-    	die("connection failed:" . $conn->connect_error);
+		die("connection failed:" . $conn->connect_error);
 	} else {
 		return $conn;
 	}
@@ -22,11 +22,11 @@ function getAllUsers(){
 	$sql="SELECT * FROM user";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) {
-	    while($row = $result->fetch_assoc()) {
-	       array_push($users,$row);
-    	} 
+		while($row = $result->fetch_assoc()) {
+			array_push($users,$row);
+		} 
 	} else {
-	     echo "Tühi";
+		echo "Tühi";
 	}
 	return $users;
 }
@@ -36,7 +36,7 @@ function logIn($username, $password){
 	$username = stripslashes($username);
 	$username = mysqli_real_escape_string($conn, $username);
 	$password = stripslashes($password);
- 	$password = mysqli_real_escape_string($conn, $password);
+	$password = mysqli_real_escape_string($conn, $password);
 	$sql="SELECT * FROM user WHERE username='$username' AND password='".md5($password)."'";
 	$result = $conn->query($sql);
 	if ($result->num_rows == 1) {
@@ -52,7 +52,7 @@ function newUser($username, $password){
 	$username = stripslashes($username);
 	$username = mysqli_real_escape_string($conn, $username);
 	$password = stripslashes($password);
- 	$password = mysqli_real_escape_string($conn, $password);
+	$password = mysqli_real_escape_string($conn, $password);
 	$sql = "INSERT INTO user (username, password) VALUES ('$username', '" . md5($password). "')";
 	if(isValidUser($username) && $conn->query($sql)){
 		header("location: login.php");
@@ -70,14 +70,14 @@ function isValidUser($username){
 		return false;
 
 	} else {
-	return true;
+		return true;
 	}
 }
 
 function saveGameStats($gameId, $team, $name, $nr, $time, $one_pt_made, $one_pt_miss, $two_pt_made, $two_pt_miss, $three_pt_made, $three_pt_miss, $off_reb, $def_reb, $assists, $steals, $blocks, $turnovers, $fouls, $plus_minus){
 	$conn = dbconnect();
 	$sql = "INSERT INTO stats (game_id, team,name, number, time, one_pt_made, one_pt_miss, two_pt_made, two_pt_miss, three_pt_made, three_pt_miss, off_reb, def_reb, assists, steals, blocks, turnovers, fouls, plus_minus) 
-					   VALUES ('$gameId', '$team','$name', '$nr', '$time', '$one_pt_made', '$one_pt_miss', '$two_pt_made', '$two_pt_miss', '$three_pt_made', '$three_pt_miss', '$off_reb', '$def_reb', '$assists', '$steals', '$blocks', '$turnovers', '$fouls', '$plus_minus')";
+	VALUES ('$gameId', '$team','$name', '$nr', '$time', '$one_pt_made', '$one_pt_miss', '$two_pt_made', '$two_pt_miss', '$three_pt_made', '$three_pt_miss', '$off_reb', '$def_reb', '$assists', '$steals', '$blocks', '$turnovers', '$fouls', '$plus_minus')";
 	if($conn->query($sql)){
 	} else {
 		echo "Error: " . $sql . "<br>" . $conn->error;
@@ -100,11 +100,11 @@ function getUserId($username){
 	$sql = "SELECT id FROM user WHERE username = '$username'";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) {
-	    while($row = $result->fetch_assoc()) {
-	    	return $row['id'];
-    	} 
+		while($row = $result->fetch_assoc()) {
+			return $row['id'];
+		} 
 	} else {
-	     echo "Error: " . $sql . "<br>" . $conn->error;
+		echo "Error: " . $sql . "<br>" . $conn->error;
 	}
 }
 
@@ -114,9 +114,9 @@ function getGames($userId){
 	$sql="SELECT * FROM games WHERE user_id = '$userId'";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) {
-	    while($row = $result->fetch_assoc()) {
-	       array_push($games,$row);
-    	} 
+		while($row = $result->fetch_assoc()) {
+			array_push($games,$row);
+		} 
 	} else {
 	}
 	return $games;
@@ -128,11 +128,11 @@ function getStats($gameNr){
 	$sql="SELECT * FROM stats WHERE game_id = '$gameNr'";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) {
-	    while($row = $result->fetch_assoc()) {
-	       array_push($stats,$row);
-    	} 
+		while($row = $result->fetch_assoc()) {
+			array_push($stats,$row);
+		} 
 	} else {
-	     echo "Error: " . $sql . "<br>" . $conn->error;
+		echo "Error: " . $sql . "<br>" . $conn->error;
 	}
 	return $stats;
 }
@@ -141,16 +141,16 @@ function generateGameNr(){
 	$conn = dbconnect();
 	$bool = true;
 	while($bool){
-	$nr = rand(100000, 999999);
-	$sql = "SELECT EXISTS(SELECT 1 FROM games WHERE game_nr = '$nr')";
-	$result = $conn->query($sql);
-	if ($result->num_rows > 0) {
-		while($row = $result->fetch_assoc()) {
-	       $bool = (boolval(array_values($row)[0]));
-    	} 
-	} else {
-	     echo "Error: " . $sql . "<br>" . $conn->error;
-	}
+		$nr = rand(100000, 999999);
+		$sql = "SELECT EXISTS(SELECT 1 FROM games WHERE game_nr = '$nr')";
+		$result = $conn->query($sql);
+		if ($result->num_rows > 0) {
+			while($row = $result->fetch_assoc()) {
+				$bool = (boolval(array_values($row)[0]));
+			} 
+		} else {
+			echo "Error: " . $sql . "<br>" . $conn->error;
+		}
 	}
 	return $nr;
 }

@@ -15,12 +15,12 @@ app1.controller('ctrl1', function($rootScope, $scope, PubNub) {
 
   PubNub.ngSubscribe({ channel: $scope.channel });
   $rootScope.$on(PubNub.ngMsgEv($scope.channel), function(ngEvent, payload) {
-  $scope.$apply(function() {
-    $scope.message = payload.message;
-    $scope.team = $scope.message[0];
-    $scope.gameLog = $scope.message[1];
-    $scope.homeTeamName = $scope.message[2];
-    $scope.awayTeamName = $scope.message[3];
+    $scope.$apply(function() {
+      $scope.message = payload.message;
+      $scope.team = $scope.message[0];
+      $scope.gameLog = $scope.message[1];
+      $scope.homeTeamName = $scope.message[2];
+      $scope.awayTeamName = $scope.message[3];
     });
   });
 
@@ -30,19 +30,19 @@ app1.controller('ctrl1', function($rootScope, $scope, PubNub) {
   };
 
   function $_GET(param) {
-  var vars = {};
-  window.location.href.replace( location.hash, '' ).replace( 
-    /[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
-    function( m, key, value ) { // callback
+    var vars = {};
+    window.location.href.replace( location.hash, '' ).replace( 
+    /[?&]+([^=&]+)=?([^&]*)?/gi, 
+    function( m, key, value ) {
       vars[key] = value !== undefined ? value : '';
     }
-  );
+    );
 
-  if ( param ) {
-    return vars[param] ? vars[param] : null;  
+    if ( param ) {
+      return vars[param] ? vars[param] : null;  
+    }
+    return vars;
   }
-  return vars;
-}
   $scope.getTotal = function(stat, teamName) {
     var total = 0;
     for (var i = 0; i < $scope.team[teamName].length; i++) {

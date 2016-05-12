@@ -1,6 +1,5 @@
 var myApp = angular.module('selectionApp', ['pascalprecht.translate']);
 myApp.config(['$translateProvider', function($translateProvider){
-  // Adding a translation table for the English language
   $translateProvider.translations('en', {
     "TIME" : 'Use game clock',
 	"QUARTERS" : 'Keep count of quarters',
@@ -20,7 +19,6 @@ myApp.config(['$translateProvider', function($translateProvider){
 	"INDIVIDUAL" : 'Individual',
 	"ADDITIONAL SETTINGS" : 'Additional Settings',
   });
-  // Adding a translation table for the Russian language
   $translateProvider.translations('ee', {
     "TIME" : 'Kasuta mängu kella',
 	"QUARTERS" : 'Pea arvestust perioodide üle',
@@ -40,7 +38,6 @@ myApp.config(['$translateProvider', function($translateProvider){
 	"INDIVIDUAL" : 'Individuaalne',
 	"ADDITIONAL SETTINGS" : 'Lisa sätted',
   });
-  // Tell the module what language to use by default
   $translateProvider.preferredLanguage('en');
 }])
 myApp.controller('MyCtrl',  ['$scope', '$translate', function($scope, $translate) {
@@ -116,18 +113,7 @@ myApp.controller('MyCtrl',  ['$scope', '$translate', function($scope, $translate
 				   "Away":[]
 				   };
 
-	$scope.selectedTeam = "Home";
-
-/*
-	$scope.newPlayer = function(name, nr) {
-    $scope.team.push({
-      Nr: nr == null ? 0 : +nr,
-      Name: name
-    });
-    $scope.Name = null;
-    $scope.Nr = null;
-  }
-  */
+$scope.selectedTeam = "Home";
 
     $scope.newPlayer = function(teamName, name, nr){
    	if($scope.numberExist(teamName, nr)){
@@ -241,21 +227,7 @@ $scope.setLang = function(langKey) {
     $translate.use(langKey);
   };
 
-	/*
-		"Time": false,
-	    "Points": false,
-	    "OnePtMade": false,
-	    "OnePtMiss": false,
-	    "TwoPtMade": false,
-	    "TwoPtMiss": false,
-	    "ThreePtMade": false,
-		"ThreePtMiss": false,
-	    "OffReb": false,
-	    "DefReb": false,
-	    "Assists": false,
-	    "Steals": false,
-	    "Blocks": false,
-	    "Fouls": false,*/
+	
 }]);
 
 
