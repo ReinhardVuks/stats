@@ -2,11 +2,12 @@
 session_start();
 include 'functions.php';
 
-if(isset($_POST['registerUser']) && isset($_POST['registerUser'])){
+if(isset($_POST['registerUser']) && isset($_POST['registerPassword'])){
 
 	newUser($_POST['registerUser'], $_POST['registerPassword']);
 
+} else {
+
 }
 
-	header("Location: login.php?error=true");
 ?>

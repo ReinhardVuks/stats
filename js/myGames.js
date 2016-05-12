@@ -12,6 +12,42 @@ myApp.controller('Ctrl1', function($scope, $http) {
       "AwayTeamName" : awayTeamName
 		});
 	}
+  $scope.createGameLog = function(gameNr){
+    $http.get("http://experienceweb.xyz/stats/getGame.php?gameid="+gameNr)
+   .then(function (response) {
+    $scope.gameLog = response.data.game_log;
+    for (var i = 0; i < $scope.myGames.length; i++) {
+      if($scope.myGames[i].GameNr == gameNr){
+        $scope.homeTeamName = $scope.myGames[i].HomeTeamName;
+        $scope.awayTeamName = $scope.myGames[i].AwayTeamName;
+        
+      }
+    };
+    var data = [];
+      for (var i = 0; i < $scope.gameLog.length; i++) {
+        var items = $scope.gameLog[i][0].split(";");
+      
+        var tmp = [];
+        if(items.length == 2){
+          tmp.push(items[1]);
+        } else {
+          tmp.push("");
+        }
+        tmp.push(items[0]);
+        data.push(tmp);
+      }
+        var doc = new jsPDF('p', 'pt');
+        doc.text(255, 60, "GAME LOG");
+        if($scope.homeTeamName.length > 0){
+          doc.text(120, 90, $scope.homeTeamName);
+        }
+        if($scope.awayTeamName.length > 0){
+          doc.text(370, 90, $scope.awayTeamName);
+        }
+        doc.autoTable(["Score","Play-By-Play"], data, {startY: 100, styles: {halign: 'left'}});
+        doc.save("game_log.pdf");
+
+  })};
 
   $scope.createBoxScore = function(gameNr){
     $http.get("http://experienceweb.xyz/stats/getGame.php?gameid="+gameNr)
@@ -51,7 +87,7 @@ myApp.controller('Ctrl1', function($scope, $http) {
         function getData(teamName){
 
           var data = [];
-          for (var i = 0; i < $scope.team[teamName].length; i++) {
+          for (var i = 1; i < $scope.team[teamName].length-1; i++) {
             var array = $.map($scope.team[teamName][i], function(value, index) {
               return [value];
             });
@@ -108,6 +144,15 @@ myApp.controller('Ctrl1', function($scope, $http) {
             };
             data.push(statline);
           };
+          team = [,,,,,,,,,,,,,,,,];
+          team[1] = "Team";
+          team[6] = $scope.team[teamName][0]["DefReb"];
+          team[7] = $scope.team[teamName][0]["OffReb"];
+          team[8] = (+$scope.team[teamName][0]["OffReb"] + +$scope.team[teamName][0]["DefReb"]);
+          team[12] = $scope.team[teamName][0]["Turnovers"];
+          team[13] = $scope.team[teamName][0]["Fouls"];
+          data.push(team);
+          
           total = [,,,,,,,,,,,,,,,,];
           total[1] = "Total:"
           total[3] = $scope.getTotal("TwoPtMade", teamName) + "-" + (+$scope.getTotal("TwoPtMade", teamName) + +$scope.getTotal("TwoPtMiss", teamName));
@@ -141,8 +186,6 @@ myApp.controller('Ctrl1', function($scope, $http) {
         doc.save("table.pdf");
   });
   }
-
-  
 
 	$scope.newPlayer = function(teamName, name, nr, time, one_pt_made, one_pt_miss, two_pt_made, two_pt_miss, three_pt_made, three_pt_miss, off_reb, def_reb, assists, steals, blocks, turnovers, fouls, plus_minus) {
     $scope.team[teamName].push({

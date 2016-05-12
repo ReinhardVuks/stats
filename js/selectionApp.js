@@ -1,12 +1,55 @@
-var myApp = angular.module('selectionApp', []);
-
-myApp.controller('MyCtrl', function($scope) {
+var myApp = angular.module('selectionApp', ['pascalprecht.translate']);
+myApp.config(['$translateProvider', function($translateProvider){
+  // Adding a translation table for the English language
+  $translateProvider.translations('en', {
+    "TIME" : 'Use game clock',
+	"QUARTERS" : 'Keep count of quarters',
+	"MISSED_SHOTS" : 'Mark missed shots',
+	"REBOUNDS" : 'Mark rebounds',
+	"OFF_REBOUNDS" : 'Mark offensive rebounds',
+	"ASSISTS" : 'Mark assists',
+	"STEALS" : 'Mark steals',
+	"BLOCKS" : 'Mark blocks',
+	"FOULS" : 'Mark fouls',
+	"TURNOVERS" : 'Mark turnovers',
+	"PERIOD_LENGTH" : 'Set period length in minutes',
+	"NR_OF_PERIODS" : 'Set number of periods',
+	"MAX_ON_COURT_PLAYERS" : 'Set maximum number of on court players',
+	"MAX_FOULS" : 'Set maximum number of fouls allowed to commit',
+	"GAME" : 'Game',
+	"INDIVIDUAL" : 'Individual',
+	"ADDITIONAL SETTINGS" : 'Additional Settings',
+  });
+  // Adding a translation table for the Russian language
+  $translateProvider.translations('ee', {
+    "TIME" : 'Kasuta mängu kella',
+	"QUARTERS" : 'Pea arvestust perioodide üle',
+	"MISSED_SHOTS" : 'Märgi möödaläinud viskeid',
+	"REBOUNDS" : 'Märgi lauapalle',
+	"OFF_REBOUNDS" : 'Märgi ründelaua palle',
+	"ASSISTS" : 'Märgi resultatiivseid sööte',
+	"STEALS" : 'Märgi vaheltlõikeid',
+	"BLOCKS" : 'Märgi viskeblokeeringuid',
+	"FOULS" : 'Märgi vigu',
+	"TURNOVERS" : 'Märgi pallikaotusi',
+	"PERIOD_LENGTH" : 'Määra ühe perioodi pikkus',
+	"NR_OF_PERIODS" : 'Määra mitu perioodi mängitakse',
+	"MAX_ON_COURT_PLAYERS" : 'Määra maksimaalne väljakumängijate arv',
+	"MAX_FOULS" : 'Määra maksimaalne isiklike vigade arv',
+	"GAME" : 'Mäng',
+	"INDIVIDUAL" : 'Individuaalne',
+	"ADDITIONAL SETTINGS" : 'Lisa sätted',
+  });
+  // Tell the module what language to use by default
+  $translateProvider.preferredLanguage('en');
+}])
+myApp.controller('MyCtrl',  ['$scope', '$translate', function($scope, $translate) {
 
 	$scope.homeTeamName = "Home";
 	$scope.homeTeamNameShort = "HME";
-	$scope.homeTeamColor = "#FFFFFF";
 	$scope.awayTeamName = "Away";
 	$scope.awayTeamNameShort = "AWY";
+	$scope.homeTeamColor = "#FFFFFF";
 	$scope.awayTeamColor  = "#000000";
 
 	$scope.selectionDone = false;
@@ -26,12 +69,11 @@ myApp.controller('MyCtrl', function($scope) {
 
 
 	$scope.basketballStats = [{
-		"Game" : {
+		"GAME" : {
 			"TIME" : false,
 			"QUARTERS" : false,
 		}},
-		{"Induvidual" : {
-			"POINTS" : false,
+		{"INDIVIDUAL" : {
 			"MISSED_SHOTS": false,
 			"REBOUNDS" : false,
 			"OFF_REBOUNDS" : false,
@@ -41,7 +83,7 @@ myApp.controller('MyCtrl', function($scope) {
 			"FOULS" : false,
 			"TURNOVERS" : false
 		}},
-		{"Additional Settings" : {
+		{"ADDITIONAL SETTINGS" : {
 			"PERIOD_LENGTH" : 10,
 			"NR_OF_PERIODS" : 4,
 			"MAX_ON_COURT_PLAYERS" : 5,
@@ -101,11 +143,13 @@ myApp.controller('MyCtrl', function($scope) {
   }
 
   $scope.numberExist = function(teamName, nr){
-	for (var i = 0; i < $scope.team[teamName].length; i++) {
-		if($scope.team[teamName][i].Nr == nr){
-			return true
-		}
-	};
+  	if($scope.team[teamName].length > 0){
+		for (var i = 0; i < $scope.team[teamName].length; i++) {
+			if($scope.team[teamName][i].Nr == nr){
+				return true
+			}
+		};
+	}
 	return false;
 }
 
@@ -193,6 +237,10 @@ $scope.showContent = function($fileContent){
   return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
 }
 
+$scope.setLang = function(langKey) {
+    $translate.use(langKey);
+  };
+
 	/*
 		"Time": false,
 	    "Points": false,
@@ -208,7 +256,7 @@ $scope.showContent = function($fileContent){
 	    "Steals": false,
 	    "Blocks": false,
 	    "Fouls": false,*/
-});
+}]);
 
 
 myApp.directive('onReadFile', function ($parse) {

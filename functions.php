@@ -1,4 +1,5 @@
 <?php
+include "common.php";
 
 function dbconnect(){
 	$servername="mysql.hostinger.ee";
@@ -32,27 +33,36 @@ function getAllUsers(){
 
 function logIn($username, $password){
 	$conn = dbconnect();
-	$sql="SELECT * FROM user WHERE username='$username' AND password='$password'";
+	$username = stripslashes($username);
+	$username = mysqli_real_escape_string($conn, $username);
+	$password = stripslashes($password);
+ 	$password = mysqli_real_escape_string($conn, $password);
+	$sql="SELECT * FROM user WHERE username='$username' AND password='".md5($password)."'";
 	$result = $conn->query($sql);
 	if ($result->num_rows == 1) {
 		$_SESSION['username'] = $username;
 		header("location: index.php");
 	} else {
-	     echo "Error: " . $sql . "<br>" . $conn->error;
+		header("location: login.php?error=lf");
 	}
 }
 
 function newUser($username, $password){
 	$conn = dbconnect();
-	$sql = "INSERT INTO user (username, password) VALUES ('$username', '$password')";
-	if($conn->query($sql) && isValidUser($username)){
-		header("location: login.php?newUser=true");
+	$username = stripslashes($username);
+	$username = mysqli_real_escape_string($conn, $username);
+	$password = stripslashes($password);
+ 	$password = mysqli_real_escape_string($conn, $password);
+	$sql = "INSERT INTO user (username, password) VALUES ('$username', '" . md5($password). "')";
+	if(isValidUser($username) && $conn->query($sql)){
+		header("location: login.php");
 	} else {
-		echo "Error: " . $sql . "<br>" . $conn->error;
+		header("location: login.php?error=rf");
 	}
 }
 
 function isValidUser($username){
+	$users=array();
 	$conn = dbconnect();
 	$sql = "SELECT * FROM user WHERE username = '$username'";
 	$result = $conn->query($sql);
@@ -69,7 +79,6 @@ function saveGameStats($gameId, $team, $name, $nr, $time, $one_pt_made, $one_pt_
 	$sql = "INSERT INTO stats (game_id, team,name, number, time, one_pt_made, one_pt_miss, two_pt_made, two_pt_miss, three_pt_made, three_pt_miss, off_reb, def_reb, assists, steals, blocks, turnovers, fouls, plus_minus) 
 					   VALUES ('$gameId', '$team','$name', '$nr', '$time', '$one_pt_made', '$one_pt_miss', '$two_pt_made', '$two_pt_miss', '$three_pt_made', '$three_pt_miss', '$off_reb', '$def_reb', '$assists', '$steals', '$blocks', '$turnovers', '$fouls', '$plus_minus')";
 	if($conn->query($sql)){
-		header("location: index.php");
 	} else {
 		echo "Error: " . $sql . "<br>" . $conn->error;
 	}	
@@ -77,7 +86,9 @@ function saveGameStats($gameId, $team, $name, $nr, $time, $one_pt_made, $one_pt_
 
 function createGame($gameNr, $userId, $hometeamname, $awayteamname){
 	$conn = dbconnect();
-	$sql = "INSERT INTO games (game_nr, user_id, home_team, away_team, creation_date) VALUES ('$gameNr','$userId','$hometeamname','$awayteamname',now())";
+	date_default_timezone_set('Europe/Helsinki');
+	$date = date('Y-m-d H:i:s');
+	$sql = "INSERT INTO games (game_nr, user_id, home_team, away_team, creation_date) VALUES ('$gameNr','$userId','$hometeamname','$awayteamname', '$date')";
 	if($conn->query($sql)){
 	} else {
 		echo "Error: " . $sql . "<br>" . $conn->error;
@@ -124,5 +135,32 @@ function getStats($gameNr){
 	     echo "Error: " . $sql . "<br>" . $conn->error;
 	}
 	return $stats;
+}
+
+function generateGameNr(){
+	$conn = dbconnect();
+	$bool = true;
+	while($bool){
+	$nr = rand(100000, 999999);
+	$sql = "SELECT EXISTS(SELECT 1 FROM games WHERE game_nr = '$nr')";
+	$result = $conn->query($sql);
+	if ($result->num_rows > 0) {
+		while($row = $result->fetch_assoc()) {
+	       $bool = (boolval(array_values($row)[0]));
+    	} 
+	} else {
+	     echo "Error: " . $sql . "<br>" . $conn->error;
+	}
+	}
+	return $nr;
+}
+
+function saveGameLog($gameId, $input){
+	$conn = dbconnect();
+	$sql = "INSERT INTO game_log (game_id, data) VALUES ('$gameId', '$input')";
+	if($conn->query($sql)){
+	} else {
+		echo "Error: " . $sql . "<br>" . $conn->error;
+	}	
 }
 ?>

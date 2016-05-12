@@ -1,6 +1,79 @@
-var myApp = angular.module('myApp', ['cfp.hotkeys']);
+var myApp = angular.module('myApp', ['cfp.hotkeys', 'pubnub.angular.service','pascalprecht.translate']);
+myApp.config(['$translateProvider', function($translateProvider){
+  // Adding a translation table for the English language
+  $translateProvider.translations('en', {
+   'SHOT_MADE' : '-point Shot Made By: ',
+   'SHOT_MISSED' : '-point Shot Made By: ',
+   'OFFENSIVE_REB' : 'Offensive Rebound to: ',
+   'DEFENSIVE_REB' : 'Defensive Rebound to: ',
+   'ASSIST' : 'Assist Made by: ',
+   'STEAL' : 'Steal Made by: ',
+   'BLOCK' : 'Blocked Shot to: ',
+   'TURNOVER' : 'Turnover by: ',
+   'FOUL' : 'Foul Made by: ',
+  });
+  // Adding a translation table for the Russian language
+  $translateProvider.translations('ee', {
+   'SHOT_MADE' : '-punkti vise sees: ',
+   'SHOT_MISSED' : '-punkti vise möödas: ',
+   'OFFENSIVE_REB' : 'Ründelaud: ',
+   'DEFENSIVE_REB' : 'Kaitselaud: ',
+   'ASSIST' : 'Resultatiivne sööt: ',
+   'STEAL' : 'Vaheltlõige: ',
+   'BLOCK' : 'Blokeeritud vise: ',
+   'TURNOVER' : 'Pallikaotus: ',
+   'FOUL' : 'Viga: ',
+  });
+  // Tell the module what language to use by default
+  $translateProvider.preferredLanguage('en');
+}])
 
-myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
+myApp.controller('MyCtrl', function($rootScope, $scope, $timeout, $translate, hotkeys, PubNub) {
+
+  $scope.setLang = function(langKey) {
+    $translate.use(langKey);
+  };
+
+
+  //----------------LIVE-------------
+
+  $scope.userId = "User " + Math.round(Math.random()*1000);
+  $scope.channel = "Channel" + $_GET('nr');
+
+   if (!$rootScope.initialized) {
+    PubNub.init({
+      subscribe_key: 'sub-c-874efbca-0242-11e6-8b0b-0619f8945a4f',
+      publish_key: 'pub-c-5b2ab7df-8440-4d8f-9423-07992a42ee77',
+      uuid:$scope.userId
+    });
+    $rootScope.initialized = true;
+  }
+
+  $scope.publish = function() {
+    $scope.message =[$scope.team, $scope.gameLog, $scope.homeTeamName, $scope.awayTeamName];
+  PubNub.ngPublish({
+    channel: $scope.channel,
+    message: $scope.message
+  });
+};
+
+function $_GET(param) {
+  var vars = {};
+  window.location.href.replace( location.hash, '' ).replace( 
+    /[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
+    function( m, key, value ) { // callback
+      vars[key] = value !== undefined ? value : '';
+    }
+  );
+
+  if ( param ) {
+    return vars[param] ? vars[param] : null;  
+  }
+  return vars;
+}
+
+
+  //----------------LIVE-------------
 
   $scope.stats = [{
       "TIME" : false,
@@ -24,20 +97,26 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
   $scope.timersAway = {};
   $scope.timerGame = {};
 
-  $scope.gameLog = [["Game is about to begin"]];
+  $scope.gameLog = [];
+  $scope.gameLogAdd = function($string){
+    $scope.gameLog.push([$string]);
+  }
   $scope.removeLastPlay = function(){
     if($scope.gameLog.length > 1){
       $scope.edit($scope.gameLog[$scope.gameLog.length - 1][1], $scope.gameLog[$scope.gameLog.length - 1][2], $scope.gameLog[$scope.gameLog.length - 1][3], $scope.gameLog[$scope.gameLog.length - 1][4]);
       if($scope.gameLog[$scope.gameLog.length - 1][1].indexOf("Made") > -1){
+        var value = $scope.gameLog[$scope.gameLog.length - 1][0].split(":")[1][1];
         for (var i = 0; i < $scope.team[$scope.playerTeam].length; i++) {
-        if ($scope.onCourt[$scope.playerTeam].indexOf(i) !== -1){
-            $scope.team[$scope.gameLog[$scope.gameLog.length - 1][4]][i]["PlusMinus"] -= +$scope.gameLog[$scope.gameLog.length - 1][0][0];
-      
+          if ($scope.onCourt[$scope.playerTeam].indexOf(i) !== -1){
+              $scope.team[$scope.gameLog[$scope.gameLog.length - 1][4]][i]["PlusMinus"] -= +value;
+        
+          }
         }
-        if ($scope.onCourt[getOtherTeamName($scope.playerTeam)].indexOf(i) !== -1){
-            $scope.team[getOtherTeamName($scope.gameLog[$scope.gameLog.length - 1][4])][i]["PlusMinus"] += +$scope.gameLog[$scope.gameLog.length - 1][0][0];
-        }
-      }
+        for (var i = 0; i < $scope.team[getOtherTeamName($scope.playerTeam)].length; i++) {
+          if ($scope.onCourt[getOtherTeamName($scope.playerTeam)].indexOf(i) !== -1){
+              $scope.team[getOtherTeamName($scope.gameLog[$scope.gameLog.length - 1][4])][i]["PlusMinus"] += +value;
+          }
+        };
       }
       $scope.gameLog.splice(-1, 1);
     }
@@ -48,12 +127,27 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
   $scope.nrOfPeriods = 4;
   $scope.maxOnCourtPlayers = 5;
 
+
+  $scope.periodFouls = {"Home" : [0], "Away" : [0]};
+
   
   $scope.timeGame = $scope.initialGameTime;
 
   $scope.newTime = function(){
+    var oldTime = $scope.timeGame;
     $scope.timeGame = +($scope.timeGameMin * 60) + +$scope.timeGameSec;
-  }
+    var timeDiff =  (+oldTime - +$scope.timeGame);
+    for (var i = 0; i < $scope.onCourt["Home"].length; i++) {
+      if(i != 0){
+        $scope.team["Home"][$scope.onCourt["Home"][i]]["Time"] = $scope.team["Home"][$scope.onCourt["Home"][i]]["Time"] + timeDiff;
+      }
+    }
+    for (var i = 0; i < $scope.onCourt["Away"].length; i++) {
+      if(i != 0){
+        $scope.team["Away"][$scope.onCourt["Away"][i]]["Time"] = $scope.team["Away"][$scope.onCourt["Away"][i]]["Time"] + timeDiff;
+      }
+    }
+}
 
   $scope.timeSplit = function(){
       $scope.timeGameMin = Math.floor(+$scope.timeGame / 60);
@@ -127,11 +221,14 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
   $scope.changePeriod = function(n){
     if(n == 1 && $scope.period < $scope.nrOfPeriods){
       $scope.period++;
+      if($scope.periodFouls["Home"].length < $scope.period)
+          $scope.periodFouls["Home"].push(0);
+          $scope.periodFouls["Away"].push(0);
     } 
-    if (n == 0 && $scope.nrOfPeriods > 1) {
+    if (n == 0 && $scope.period > 1) {
       $scope.period--;
     }
-  }
+    }
 
   $scope.switch = function(nr, team) {
     if ($scope.onCourt[team].indexOf(nr) == -1 && $scope.onCourt[team].length <= 5) {
@@ -222,7 +319,7 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
     var tmp = [];
     if (made) {
       $scope.team[$scope.playerTeam][$scope.playerId][nrToName(pts) + "PtMade"]++;
-      tmp.push(getShortName($scope.playerTeam) + ": " + pts+"-Point Shot Made By: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"]+ " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.getPlayerTotalPoints($scope.playerId, $scope.playerTeam) + ")");
+      tmp.push(getShortName($scope.playerTeam) + ": " + pts+ $translate.instant('SHOT_MADE') + "#" +  $scope.team[$scope.playerTeam][$scope.playerId]["Nr"]+ " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.getPlayerTotalPoints($scope.playerId, $scope.playerTeam) + ")");
       tmp.push(nrToName(pts) + "PtMade");
       tmp.push(false);
       tmp.push($scope.playerId);
@@ -240,7 +337,7 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
         }
         };
     } else {
-      tmp.push(getShortName($scope.playerTeam) + ": " + pts+"-Point Shot Missed By: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
+      tmp.push(getShortName($scope.playerTeam) + ": " + pts+ $translate.instant('SHOT_MISSED') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"]);
       tmp.push(nrToName(pts) + "PtMade");
       tmp.push(null);
       tmp.push($scope.playerId);
@@ -251,6 +348,7 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
 
     $scope.shotBool = true;
     $scope.fgBool = false;
+    $scope.publish();
   }
 
   $scope.addRbd = function(isOff) {
@@ -258,11 +356,11 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
       var tmp = [];
       if (isOff) {
         $scope.team[$scope.playerTeam][$scope.playerId]["OffReb"]++;
-        tmp.push(getShortName($scope.playerTeam) + ": " + "Offensive Rebound to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (Off: " + $scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + ", Tot: " + (+$scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + +$scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]) +")");
+        tmp.push(getShortName($scope.playerTeam) + ": " + $translate.instant('OFFENSIVE_REB') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (Off: " + $scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + ", Tot: " + (+$scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + +$scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]) +")");
         tmp.push("OffReb");
       } else {
         $scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]++;
-        tmp.push(getShortName($scope.playerTeam) + ": " + "Defensive Rebound to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (Def: " + $scope.team[$scope.playerTeam][$scope.playerId]["DefReb"] + ", Tot: " + (+$scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + +$scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]) +")");
+        tmp.push(getShortName($scope.playerTeam) + ": " + $translate.instant('DEFENSIVE_REB') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (Def: " + $scope.team[$scope.playerTeam][$scope.playerId]["DefReb"] + ", Tot: " + (+$scope.team[$scope.playerTeam][$scope.playerId]["OffReb"] + +$scope.team[$scope.playerTeam][$scope.playerId]["DefReb"]) +")");
         tmp.push("DefReb");
       }
       tmp.push(false);
@@ -270,61 +368,67 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
       tmp.push($scope.playerTeam);
       $scope.gameLog.push(tmp);
     }
+    $scope.publish();
   };
   $scope.addAst = function() {
     if ( $scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1 && $scope.playerId != 0) {
       $scope.team[$scope.playerTeam][$scope.playerId]["Assists"]++;
       var tmp = [];
-      tmp.push(getShortName($scope.playerTeam) + ": " + "Assist Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Assists"] + ")");
+      tmp.push(getShortName($scope.playerTeam) + ": " + $translate.instant('ASSIST') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Assists"] + ")");
       tmp.push("Assists");
       tmp.push(false);
       tmp.push($scope.playerId);
       tmp.push($scope.playerTeam);
       $scope.gameLog.push(tmp);
     }
+    $scope.publish();
   };
   $scope.addStl = function() {
     if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1 && $scope.playerId != 0) {
       $scope.team[$scope.playerTeam][$scope.playerId]["Steals"]++;
       var tmp = [];
-      tmp.push(getShortName($scope.playerTeam) + ": " + "Steal Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Steals"] + ")");
+      tmp.push(getShortName($scope.playerTeam) + ": " + $translate.instant('STEAL') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Steals"] + ")");
       tmp.push("Steals");
       tmp.push(false);
       tmp.push($scope.playerId);
       tmp.push($scope.playerTeam);
       $scope.gameLog.push(tmp);
     }
+    $scope.publish();
   };
   $scope.addBlk = function() {
     if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1 && $scope.playerId != 0) {
       $scope.team[$scope.playerTeam][$scope.playerId]["Blocks"]++;
       var tmp = [];
-      tmp.push(getShortName($scope.playerTeam) + ": " + "Blocked Shot to: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Blocks"] + ")");  
+      tmp.push(getShortName($scope.playerTeam) + ": " + $translate.instant('BLOCK') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Blocks"] + ")");  
       tmp.push("Blocks");
       tmp.push(false);
       tmp.push($scope.playerId);
       tmp.push($scope.playerTeam);
       $scope.gameLog.push(tmp);
     }
+    $scope.publish();
   };
   $scope.addTo = function() {
     if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
       $scope.team[$scope.playerTeam][$scope.playerId]["Turnovers"]++;
       var tmp = [];
-      tmp.push(getShortName($scope.playerTeam) + ": " + "Turnover by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Turnovers"] + ")");  
+      tmp.push(getShortName($scope.playerTeam) + ": " + $translate.instant('TURNOVER') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Turnovers"] + ")");  
       tmp.push("Turnovers");
       tmp.push(false);
       tmp.push($scope.playerId);
       tmp.push($scope.playerTeam);
       $scope.gameLog.push(tmp);
     }
+    $scope.publish();
   };
   $scope.addFls = function() {
     if ($scope.playerId != null && $scope.onCourt[$scope.playerTeam].indexOf($scope.playerId) !== -1) {
-      if ($scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] < $scope.maxFouls){
+      if ($scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] < $scope.maxFouls || $scope.playerId == 0){
         $scope.team[$scope.playerTeam][$scope.playerId]["Fouls"]++;
+        $scope.periodFouls[$scope.playerTeam][$scope.period - 1]++;
         var tmp = [];
-        tmp.push(getShortName($scope.playerTeam) + ": " + "Foul Made by: " + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] + ")");
+        tmp.push(getShortName($scope.playerTeam) + ": " + $translate.instant('FOUL') + "#" + $scope.team[$scope.playerTeam][$scope.playerId]["Nr"] + " " + $scope.team[$scope.playerTeam][$scope.playerId]["Name"] + " (" + $scope.team[$scope.playerTeam][$scope.playerId]["Fouls"] + ")");
         tmp.push("Fouls");
         tmp.push(false);
         tmp.push($scope.playerId);
@@ -332,6 +436,7 @@ myApp.controller('MyCtrl', function($scope, $timeout, hotkeys) {
         $scope.gameLog.push(tmp);
       }
     }
+    $scope.publish();
   };
 
   $scope.newPlayer = function(teamName, name, nr) {

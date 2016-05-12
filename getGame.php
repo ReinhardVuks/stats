@@ -28,8 +28,19 @@ while($rs = $result->fetch_array(MYSQLI_ASSOC)) {
     $outp .= '"Fouls":"'. $rs["fouls"]     . '",'; 
     $outp .= '"PlusMinus":"'. $rs["plus_minus"]     . '"}'; 
 }
-$outp ='{"stats":['.$outp.']}';
+$outp ='{"stats":['.$outp.'],';
+
+$result1 = $conn->query("SELECT * FROM game_log where game_id = '$gameId'");
+$outp1 = "";
+while ($rs = $result1->fetch_array(MYSQLI_ASSOC)) {
+    if($outp1 != "") {$outp1 .= ",";}
+    $outp1 .= '["'. $rs["data"]. '"]';
+}
+
+$outp1= '"game_log":['.$outp1.']}';
+
 $conn->close();
 
-echo($outp);
+echo $outp;
+echo $outp1;
 ?>

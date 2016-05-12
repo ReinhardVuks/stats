@@ -2,11 +2,13 @@
 session_start();
 
 include "functions.php";
+include_once 'common.php';
 
 ?>
 
 <html ng-app="myGamesApp" ng-cloak>
 <head>
+	<meta charset="utf-8" />
 	<script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
   <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.2.61/jspdf.min.js"></script>
@@ -29,22 +31,31 @@ include "functions.php";
 		}
 	?> 
 		<div class="row">
-			<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"></div>
+			<div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+				<div id="languages">
+					<a href="index.php?lang=en"><img src="images/eng.png" /></a>
+					<a href="index.php?lang=ee"><img src="images/est.jpg" /></a>
+				</div>
+				<div>
+					<span class="glyphicon glyphicon-home" style="cursor: pointer; font-size: 25px" onclick="window.location.assign('index.php')"></span>
+				</div>
+				
+			</div>
 			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="height: 100%">
 				<div id="mainTable">
 					<table class="table table-bordered table-condensed table-responsive">
 						<tr>
-							<th>Nr</th>
-							<th>Date</th>
-							<th>Box-Score</th>
-							<th>Game Log</th>
+							<th><?php echo $lang['NR']; ?></th>
+							<th><?php echo $lang['DATE']; ?></th>
+							<th><?php echo $lang['BOX-SCORE']; ?></th>
+							<th><?php echo $lang['GAME_LOG']; ?></th>
 						</tr>
 						<tr ng-repeat="game in myGames">
 
 							<td>{{game.GameNr}}</td>
 							<td>{{game.GameDate}}</td>
-							<td><button type="button" ng-click="createBoxScore(game.GameNr)" class="btn">Box-Score PDF</button></td>
-							<td></td>
+							<td><button type="button" ng-click="createBoxScore(game.GameNr)" class="btn"><?php echo $lang['BOX-SCORE_PDF']; ?></button></td>
+							<td><button type="button" ng-click="createGameLog(game.GameNr)" class="btn"><?php echo $lang['GAME-LOG_PDF']; ?></button></td>
 						</tr>	
 					</table>
 				</div>
